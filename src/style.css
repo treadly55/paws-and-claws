@@ -1,5 +1,5 @@
 /* /src/style.css */
-/* Friday, 11 April 2025 - Fix initial animation */
+/* Friday, 11 April 2025 2:21 AM AEST - Correct Fullscreen Button CSS */
 
 /* Basic Reset / Body Styling */
 body {
@@ -92,9 +92,6 @@ body {
   transform: translate(-50%, -50%); /* Base transform */
   /* --- End Positioning --- */
 
-  /* --- REMOVED Transition from base rule --- */
-  /* transition: transform 0.1s ease-in-out, ... */ /* REMOVED */
-
   /* Indicate it's interactive */
   cursor: pointer;
 
@@ -116,21 +113,52 @@ body {
     inset 0px 0px 0px 2px rgba(88, 12, 31, 0.7),
     /* Flattened/darker overall inset shadow */
     inset 0px 1px 3px rgba(0, 0, 0, 0.5); /* Reduced highlight/shadow depth */
-
-  /* Optional: Slightly adjust gradient */
-  /* background-image: radial-gradient(...) */ /* Example: Could shift center or darken */
 }
 
-/* --- NEW: Apply transitions only after initial render via JS --- */
+/* Apply transitions only after initial render via JS */
 body.transitions-ready #inner-button {
   transition: transform 0.1s ease-in-out,
               box-shadow 0.1s ease-in-out,
               background-image 0.1s ease-in-out;
 }
-/* --- End NEW --- */
 
+/* --- Fullscreen Button Styling --- */
+#fullscreen-btn {
+  position: fixed; /* Position relative to the viewport */
+  bottom: 15px;
+  right: 15px;
+  background-color: rgba(50, 50, 50, 0.7);
+  color: white; /* Affects text, not necessarily SVG fill */
+  border: 1px solid rgba(255, 255, 255, 0.5);
+  border-radius: 5px;
+  padding: 5px;
+  cursor: pointer;
+  opacity: 0.7;
+  transition: opacity 0.2s ease-in-out;
+  z-index: 100; /* Ensure it's above other elements */
 
-/* --- Commented out or Removed Old Styles --- */
-/* #big-red-button { ... } */
-/* #big-red-button.button-depressed { ... } */
-/* --- End of Old Styles --- */
+  /* --- CORRECTED: Use Flexbox for centering icon --- */
+  display: inline-flex; /* Treat button like inline-block but with flex powers */
+  align-items: center;    /* Vertically center content (SVG) */
+  justify-content: center; /* Horizontally center content (SVG) */
+  /* --- End Correction --- */
+}
+
+#fullscreen-btn:hover {
+  opacity: 1;
+}
+
+#fullscreen-btn svg {
+  display: block; /* Keep SVGs as blocks */
+  fill: currentColor; /* Make SVG icon use the button's text color (white) */
+  /* vertical-align: middle; */ /* REMOVED */
+}
+
+/* Style for showing/hiding icons based on fullscreen state */
+body.is-fullscreen #fullscreen-btn svg:first-of-type {
+    display: none; /* Hide expand icon when fullscreen */
+}
+body:not(.is-fullscreen) #fullscreen-btn svg:last-of-type {
+    display: none; /* Hide contract icon when not fullscreen */
+}
+/* --- End Fullscreen Button Styling --- */
