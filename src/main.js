@@ -1,21 +1,58 @@
-import './style.css'
+/* /src/main.js */
+/* Friday, 11 April 2025 - Button Interaction + Initial Animation Fix */
 
-document.querySelector('#app').innerHTML = `
-  <div>
-    <a href="https://vite.dev" target="_blank">
-      <img src="${viteLogo}" class="logo" alt="Vite logo" />
-    </a>
-    <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript" target="_blank">
-      <img src="${javascriptLogo}" class="logo vanilla" alt="JavaScript logo" />
-    </a>
-    <h1>Hello Vite!</h1>
-    <div class="card">
-      <button id="counter" type="button"></button>
-    </div>
-    <p class="read-the-docs">
-      Click on the Vite logo to learn more
-    </p>
-  </div>
-`
+// Import the CSS file (Vite handles including this in the build)
+import './style.css';
 
-setupCounter(document.querySelector('#counter'))
+// Get a reference to the button element using its ID
+const innerButton = document.querySelector('#inner-button');
+
+// Ensure the button element was found before adding listeners
+if (innerButton) {
+
+  // --- Define handler functions ---
+
+  // Function to run when the button is pressed down
+  const handlePress = (event) => {
+    // Add the CSS class to change the button's appearance
+    innerButton.classList.add('button-depressed');
+    // Log to console for debugging (optional)
+    // console.log('Event: Press', event.type);
+  };
+
+  // Function to run when the button is released
+  const handleRelease = (event) => {
+    // Remove the CSS class to revert the button's appearance
+    innerButton.classList.remove('button-depressed');
+    // Log to console for debugging (optional)
+    // console.log('Event: Release', event.type);
+  };
+
+  // --- Attach Event Listeners ---
+
+  // Listen for mouse button down and touch start events
+  innerButton.addEventListener('mousedown', handlePress);
+  innerButton.addEventListener('touchstart', handlePress, { passive: true });
+
+  // Listen for mouse button up and touch end events
+  innerButton.addEventListener('mouseup', handleRelease);
+  innerButton.addEventListener('touchend', handleRelease);
+
+  // Also listen for cases where interaction ends unexpectedly:
+  innerButton.addEventListener('mouseleave', handleRelease);
+  innerButton.addEventListener('touchcancel', handleRelease);
+
+} else {
+  // Log an error if the button element couldn't be found
+  console.error('Error: Element with ID #inner-button not found.');
+}
+
+// --- NEW: Enable transitions after initial render ---
+// Add a class to the body shortly after the page loads.
+// CSS rules dependent on '.transitions-ready' will now apply.
+// setTimeout with 0ms delay executes after the current code and browser paint.
+setTimeout(() => {
+  document.body.classList.add('transitions-ready');
+  // console.log('Transitions Ready.'); // Optional debug log
+}, 0);
+// --- End NEW ---
