@@ -1,8 +1,11 @@
+/* /src/style.css */
+
 /* Basic Reset / Body Styling */
 body {
   margin: 0;
   background-color: #222; /* Dark background for contrast */
   overflow: hidden; /* Prevent scrollbars */
+  font-family: sans-serif; /* Optional: Sets a default font */
 }
 
 /* Use Flexbox on the main app container to center its child */
@@ -25,18 +28,47 @@ body {
   /* Size - using vmin ensures it scales with the smaller viewport dimension */
   width: 30vmin; 
   height: 30vmin;
-  max-width: 250px; /* Optional: Prevent it getting too huge on large screens */
-  max-height: 250px; /* Optional: Prevent it getting too huge on large screens */
+  /* Optional: Prevent it getting too huge on large screens */
+  /* Consider adjusting these based on iPad Mini testing later */
+  max-width: 250px; 
+  max-height: 250px; 
 
   /* Make it round */
   border-radius: 50%; 
 
-  /* Basic Red Color & Style */
-  background-color: #D90429; /* A strong red */
+  /* Border */
   border: 3px solid #2d0006; /* Dark border for definition */
-  box-shadow: 0px 8px 15px rgba(0, 0, 0, 0.4), /* Outer shadow for lift */
-              inset 0px -4px 10px rgba(0, 0, 0, 0.3); /* Inner bottom shadow for dimension */
+
+  /* 80s Plastic Look using Gradient */
+  background-image: radial-gradient(circle at 50% 40%, #EF233C, #D90429 70%, #A30015 100%); 
+  
+  /* Shadow for depth and lift */
+  box-shadow: 0px 10px 20px rgba(0, 0, 0, 0.4), /* Outer shadow */
+              inset 0px -5px 15px rgba(0, 0, 0, 0.35), /* Inner bottom shadow */
+              inset 0px 2px 5px rgba(255, 255, 255, 0.2); /* Subtle inner top highlight */
 
   /* Indicate it's interactive */
   cursor: pointer; 
+
+  /* Smooth transitions for transform and shadow changes */
+  transition: transform 0.1s ease-in-out, box-shadow 0.15s ease-in-out; 
+
+  /* Prevent user text selection on the button */
+  user-select: none; 
+  -webkit-user-select: none; /* Safari */
+  -moz-user-select: none; /* Firefox */
+  -ms-user-select: none; /* IE/Edge */
+}
+
+/* Depressed Button State */
+#big-red-button.button-depressed {
+  /* Make it look pushed down */
+  transform: scale(0.95); /* Slightly smaller */
+
+  /* Adjust shadow to look pressed */
+  box-shadow: 0px 2px 5px rgba(0, 0, 0, 0.3), /* Reduced outer shadow */
+              inset 0px 0px 10px rgba(0, 0, 0, 0.5); /* Stronger, more central inner shadow */
+  
+  /* Optional: Slightly darker gradient or shift it if needed */
+  /* background-image: radial-gradient(circle at 50% 50%, #EF233C, #C0032A 70%, #800010 100%); */
 }
