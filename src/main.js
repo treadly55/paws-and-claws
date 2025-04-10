@@ -1,5 +1,5 @@
 /* /src/main.js */
-/* Friday, 11 April 2025 2:24 AM AEST - Complete current state */
+/* Friday, 11 April 2025 2:37 AM AEST - Fix double press on touch */
 
 // Import the CSS file
 import './style.css';
@@ -15,7 +15,6 @@ const backgroundImages = [
 let currentBackgroundIndex = 0;
 
 // Set the initial background image on page load
-// Ensure the array is not empty before accessing index 0
 if (backgroundImages.length > 0) {
   document.body.style.backgroundImage = `url(${backgroundImages[currentBackgroundIndex]})`;
   console.log(`Initial background set to: ${backgroundImages[currentBackgroundIndex]}`); // For debugging
@@ -31,16 +30,19 @@ if (innerButton) {
 
   // Define handler functions for inner button
   const handlePress = (event) => {
+    // --- NEW: Prevent default action for touchstart to potentially stop ghost clicks ---
+    if (event.type === 'touchstart') {
+      event.preventDefault(); // Prevent browser default actions like firing mouse events
+    }
+    // --- End NEW ---
+
     innerButton.classList.add('button-depressed');
 
     // Background Change Logic
-    // Increment index and wrap around using modulo
     currentBackgroundIndex = (currentBackgroundIndex + 1) % backgroundImages.length;
-    // Get the new image path
     const newImageUrl = backgroundImages[currentBackgroundIndex];
-    // Apply the new background image to the body
     document.body.style.backgroundImage = `url(${newImageUrl})`;
-    console.log(`Background changed to: ${newImageUrl}`); // For debugging
+    console.log(`Background changed to: ${newImageUrl}`);
 
     // Log press event (optional)
     // console.log('Event: Press', event.type);
@@ -52,9 +54,11 @@ if (innerButton) {
     // console.log('Event: Release', event.type);
   };
 
-  // Attach Event Listeners for inner button
+  // --- Attach Event Listeners ---
   innerButton.addEventListener('mousedown', handlePress);
-  innerButton.addEventListener('touchstart', handlePress, { passive: true });
+  // --- CHANGED: Removed { passive: true } because we now call preventDefault() ---
+  innerButton.addEventListener('touchstart', handlePress);
+  // --- End CHANGED ---
 
   innerButton.addEventListener('mouseup', handleRelease);
   innerButton.addEventListener('touchend', handleRelease);
@@ -80,17 +84,15 @@ if (fullscreenButton) {
 
 function toggleFullscreen() {
   if (!document.fullscreenElement) {
-    // If not fullscreen, request fullscreen on the whole page
     document.documentElement.requestFullscreen()
-      .then(() => { document.body.classList.add('is-fullscreen'); }) // Add class on success
+      .then(() => { document.body.classList.add('is-fullscreen'); })
       .catch((err) => {
         console.error(`Error attempting to enable full-screen mode: ${err.message} (${err.name})`);
       });
   } else {
-    // If already fullscreen, exit fullscreen
     if (document.exitFullscreen) {
       document.exitFullscreen()
-        .then(() => { document.body.classList.remove('is-fullscreen'); }) // Remove class on success
+        .then(() => { document.body.classList.remove('is-fullscreen'); })
         .catch((err) => {
           console.error(`Error attempting to exit full-screen mode: ${err.message} (${err.name})`);
         });
@@ -98,13 +100,10 @@ function toggleFullscreen() {
   }
 }
 
-// Optional: Listen for fullscreen change events (e.g., user pressing Esc)
 document.addEventListener('fullscreenchange', () => {
     if (!document.fullscreenElement) {
-        // Exited fullscreen (e.g., by pressing Esc)
         document.body.classList.remove('is-fullscreen');
     } else {
-        // Entered fullscreen
          document.body.classList.add('is-fullscreen');
     }
 });
@@ -112,9 +111,6 @@ document.addEventListener('fullscreenchange', () => {
 
 
 // --- Enable transitions after initial render fix ---
-// Add a class to the body shortly after the page loads.
-// CSS rules dependent on '.transitions-ready' will now apply.
-// setTimeout with 0ms delay executes after the current code and browser paint.
 setTimeout(() => {
   document.body.classList.add('transitions-ready');
   // console.log('Transitions Ready.');

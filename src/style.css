@@ -4,9 +4,18 @@
 /* Basic Reset / Body Styling */
 body {
   margin: 0;
-  background-color: #222; /* Dark background for contrast */
-  overflow: hidden; /* Prevent scrollbars */
-  font-family: sans-serif; /* Optional: Sets a default font */
+  overflow: hidden; 
+  font-family: sans-serif; 
+
+  /* --- Background Image Styling --- */
+  background-color: #222; /* Fallback color */
+  background-size: cover; /* Scale image to cover viewport */
+  background-position: center center; /* Center the image */
+  background-repeat: no-repeat; /* <<< ENSURE THIS LINE IS PRESENT */
+  
+  /* Optional: Add a transition for the background change */
+  transition: background-image 0.3s ease-in-out; 
+  /* --- End Background Image Styling --- */
 }
 
 /* Use Flexbox on the main app container to center its child */
