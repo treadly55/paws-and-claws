@@ -1,114 +1,142 @@
 /* /src/main.js */
-/* Friday, 11 April 2025 2:37 AM AEST - Fix double press on touch */
-/* Updated: Apply background to #app, not body */
+/* Reviewed & Corrected: Saturday, 26 April 2025 */
 
 // Import the CSS file
 import './style.css';
 
-// --- NEW: Select the #app element ---
-const appElement = document.querySelector('#app');
-if (!appElement) {
-  console.error('CRITICAL ERROR: #app element not found!');
-  // Maybe throw an error or stop execution if #app is essential
+// --- Select Elements ---
+// Select the elements needed for functionality
+// const appElement = document.querySelector('#app'); // No longer strictly needed? Review if used elsewhere.
+const imageSectionElement = document.querySelector('#image-section');
+const innerButton = document.querySelector('#inner-button');
+const fullscreenButton = document.querySelector('#fullscreen-btn');
+
+// --- Early Check for Critical Elements ---
+// It's good practice to check if essential elements exist early on.
+if (!imageSectionElement) {
+    console.error('CRITICAL ERROR: #image-section element not found! Background images cannot be set.');
 }
-// --- End NEW ---
+if (!innerButton) {
+    console.error('CRITICAL ERROR: #inner-button element not found! Button interactions cannot be set up.');
+}
+
 
 // --- Background Image Setup ---
 const backgroundImages = [
-  '/images/bg1.jpg', // Image 1 (Make sure this file exists!)
-  '/images/bg2.jpg', // Image 2 (Make sure this file exists!)
-  '/images/bg3.jpg', // Image 3 (Make sure this file exists!)
-  '/images/bg4.jpg', // Image 4 (Make sure this file exists!)
+    '/images/bg1.jpg', // Image 1 (Make sure this file exists!)
+    '/images/bg2.jpg', // Image 2 (Make sure this file exists!)
+    '/images/bg3.jpg', // Image 3 (Make sure this file exists!)
+    '/images/bg4.jpg', // Image 4 (Make sure this file exists!)
 ];
 let currentBackgroundIndex = 0;
 
-// Set the initial background image on page load - TARGET #app
-// Check if appElement exists before using it
-if (appElement && backgroundImages.length > 0) {
-  appElement.style.backgroundImage = `url(${backgroundImages[currentBackgroundIndex]})`; // <-- CHANGE HERE
-  console.log(`Initial background set on #app to: ${backgroundImages[currentBackgroundIndex]}`);
+// Set the initial background image on page load - TARGET #image-section
+// CORRECTED: Check imageSectionElement existence directly here.
+if (imageSectionElement && backgroundImages.length > 0) {
+    imageSectionElement.style.backgroundImage = `url(${backgroundImages[currentBackgroundIndex]})`;
+    // CORRECTED: Update log message
+    console.log(`Initial background set on #image-section to: ${backgroundImages[currentBackgroundIndex]}`);
+} else if (!imageSectionElement) {
+    // Log error again if trying to set background on non-existent element
+    console.error('Cannot set initial background: #image-section not found.');
 }
 // --- End Background Image Setup / Initial Load ---
 
 
 // --- Inner Button Interaction ---
-const innerButton = document.querySelector('#inner-button');
+// CORRECTED: Setup listeners only if BOTH innerButton AND imageSectionElement exist,
+// because handlePress modifies imageSectionElement.
+if (innerButton && imageSectionElement) {
 
-if (innerButton && appElement) { // Also check for appElement here
+    const handlePress = (event) => {
+        // Prevent default touch behavior (like ghost clicks)
+        if (event.type === 'touchstart') {
+            event.preventDefault();
+        }
 
-  const handlePress = (event) => {
-    if (event.type === 'touchstart') {
-      event.preventDefault();
-    }
+        // Add visual feedback class
+        innerButton.classList.add('button-depressed');
 
-    innerButton.classList.add('button-depressed');
+        // --- Background Change Logic - TARGET #image-section ---
+        // Cycle through images
+        currentBackgroundIndex = (currentBackgroundIndex + 1) % backgroundImages.length;
+        const newImageUrl = backgroundImages[currentBackgroundIndex];
 
-    // Background Change Logic - TARGET #app
-    currentBackgroundIndex = (currentBackgroundIndex + 1) % backgroundImages.length;
-    const newImageUrl = backgroundImages[currentBackgroundIndex];
-    appElement.style.backgroundImage = `url(${newImageUrl})`; // <-- CHANGE HERE
-    console.log(`Background on #app changed to: ${newImageUrl}`);
+        // Set the new background image (imageSectionElement is guaranteed to exist here
+        // because of the outer 'if' check)
+        imageSectionElement.style.backgroundImage = `url(${newImageUrl})`;
 
-    // console.log('Event: Press', event.type);
-  };
+        // CORRECTED: Update log message
+        console.log(`Background on #image-section changed to: ${newImageUrl}`);
 
-  const handleRelease = (event) => {
-    innerButton.classList.remove('button-depressed');
-    // console.log('Event: Release', event.type);
-  };
+        // Optional logging:
+        // console.log('Event: Press', event.type);
+    };
 
-  innerButton.addEventListener('mousedown', handlePress);
-  innerButton.addEventListener('touchstart', handlePress);
-  innerButton.addEventListener('mouseup', handleRelease);
-  innerButton.addEventListener('touchend', handleRelease);
-  innerButton.addEventListener('mouseleave', handleRelease);
-  innerButton.addEventListener('touchcancel', handleRelease);
+    const handleRelease = (event) => {
+        // Remove visual feedback class
+        innerButton.classList.remove('button-depressed');
+        // Optional logging:
+        // console.log('Event: Release', event.type);
+    };
+
+    // Attach Event Listeners for press/release actions
+    innerButton.addEventListener('mousedown', handlePress);
+    innerButton.addEventListener('touchstart', handlePress); // Use preventDefault inside handler
+    innerButton.addEventListener('mouseup', handleRelease);
+    innerButton.addEventListener('touchend', handleRelease);
+    innerButton.addEventListener('mouseleave', handleRelease); // Handle mouse leaving button while pressed
+    innerButton.addEventListener('touchcancel', handleRelease); // Handle touch interruption
 
 } else {
-  if (!innerButton) console.error('Error: Element with ID #inner-button not found.');
-  // Error for missing #app already handled above
+    // Log if setup failed, indicating which element was missing (if not already logged)
+    if (!innerButton) console.error('Button event listeners not attached: #inner-button missing.');
+    if (!imageSectionElement) console.error('Button event listeners not attached: #image-section missing (needed for background change).');
 }
 // --- End Inner Button Interaction ---
 
 
 // --- Fullscreen Logic ---
-// This logic often targets document.documentElement for entering fullscreen,
-// which is usually fine. The visual styling changes (is-fullscreen class)
-// are on the body, which still works for hiding/showing the button icon.
-// If you wanted ONLY the #app element to go fullscreen, you'd request it on appElement,
-// but that's less common for a full-page feel. Current logic is likely OK.
-
-const fullscreenButton = document.querySelector('#fullscreen-btn');
-
 if (fullscreenButton) {
-  fullscreenButton.addEventListener('click', () => {
-    toggleFullscreen();
-  });
+    fullscreenButton.addEventListener('click', () => {
+        toggleFullscreen();
+    });
 } else {
-  console.error('Fullscreen button #fullscreen-btn not found.');
+    // Log if fullscreen button isn't found (non-critical)
+    console.warn('Fullscreen button #fullscreen-btn not found.');
 }
 
+// Function to toggle fullscreen mode
 function toggleFullscreen() {
-  if (!document.fullscreenElement) {
-    // Request fullscreen on the whole page (documentElement)
-    document.documentElement.requestFullscreen()
-      .then(() => { document.body.classList.add('is-fullscreen'); })
-      .catch((err) => {
-        console.error(`Error attempting to enable full-screen mode: ${err.message} (${err.name})`);
-      });
-  } else {
-    if (document.exitFullscreen) {
-      document.exitFullscreen()
-        .then(() => { document.body.classList.remove('is-fullscreen'); })
-        .catch((err) => {
-          console.error(`Error attempting to exit full-screen mode: ${err.message} (${err.name})`);
-        });
+    if (!document.fullscreenElement) {
+        // Enter fullscreen
+        document.documentElement.requestFullscreen()
+            .then(() => {
+                // Add class to body for CSS styling hooks (e.g., changing icon)
+                document.body.classList.add('is-fullscreen');
+            })
+            .catch((err) => {
+                // Log errors if fullscreen request fails
+                console.error(`Error attempting to enable full-screen mode: ${err.message} (${err.name})`);
+            });
+    } else {
+        // Exit fullscreen (if API exists)
+        if (document.exitFullscreen) {
+            document.exitFullscreen()
+                .then(() => {
+                    // Remove styling class from body
+                    document.body.classList.remove('is-fullscreen');
+                })
+                .catch((err) => {
+                    // Log errors if exiting fullscreen fails
+                    console.error(`Error attempting to exit full-screen mode: ${err.message} (${err.name})`);
+                });
+        }
     }
-  }
 }
 
-// This listener remains on the document and toggles class on body, which is fine
-// as it controls the fullscreen icon visibility which is outside #app.
+// Listen for changes in fullscreen state (e.g., user pressing ESC)
+// Ensure the body class stays in sync with the actual fullscreen state.
 document.addEventListener('fullscreenchange', () => {
     if (!document.fullscreenElement) {
         document.body.classList.remove('is-fullscreen');
@@ -120,10 +148,10 @@ document.addEventListener('fullscreenchange', () => {
 
 
 // --- Enable transitions after initial render fix ---
-// This remains the same, adding the class to the body.
-// CSS rules target #app or #inner-button based on this body class.
+// Add class to body slightly after load to enable CSS transitions
+// without animating the initial state.
 setTimeout(() => {
-  document.body.classList.add('transitions-ready');
-  // console.log('Transitions Ready.');
+    document.body.classList.add('transitions-ready');
+    // console.log('Transitions Ready.');
 }, 0);
 // --- End Enable transitions ---

@@ -1,5 +1,5 @@
 /* /src/style.css */
-/* Consolidated Styles - Saturday, 26 April 2025 */
+/* Updated Layout: Image Section (75%) + Button Section (25%) */
 
 /* === Basic Reset / Body Styling === */
 body {
@@ -9,178 +9,84 @@ body {
   background-color: #E0E0E0; /* Outer background */
 }
 
-/* === App Container - Foundation === */
+/* === App Container - Now uses Flexbox for sections === */
 #app {
   max-width: 400px; /* Phone-like width */
   margin: 0 auto; /* Center horizontally */
-  position: relative; /* Establishes positioning context for absolute children */
-  min-height: 100vh; /* Full viewport height */
   box-sizing: border-box;
+  display: flex; /* Use flexbox to arrange sections */
+  flex-direction: column; /* Stack sections vertically */
+  min-height: 100vh; /* Make app container fill viewport height */
+  /* No background here anymore */
+  /* No position: relative needed unless specifically for pseudo-elements on #app */
+}
 
-  /* Background Image Styling (applied here) */
+/* === Top Image/Text Section (75% height) === */
+#image-section {
+  height: 75vh; /* 3/4 of the viewport height */
+  position: relative; /* Positioning context for #animal-name-display */
+  overflow: hidden; /* Hide any overflow from content */
+
+  /* Background Image Styling (Moved here from #app) */
   background-color: #222; /* Fallback */
   background-size: cover;
   background-position: center center;
   background-repeat: no-repeat;
 }
 
-/* === Absolute Positioning for Content === */
+/* === Bottom Button Section (25% height) === */
+#button-section {
+  height: 25vh; /* 1/4 of the viewport height */
+  background-color: #F5F5F5; /* Off-white background */
+  position: relative; /* Positioning context for button assembly and fullscreen btn */
+  display: flex; /* Use flexbox to center the button assembly */
+  justify-content: center; /* Center horizontally */
+  align-items: center; /* Center vertically */
+  box-sizing: border-box; /* Include padding/border in height */
+}
 
-/* Container for where the animated text will appear */
+/* === Content Positioning Adjustments === */
+
+/* Animal Name Display - Positioned within image-section */
 #animal-name-display {
   position: absolute;
-  top: 40%; /* Target vertical position (adjust as needed) */
+  top: 50%; /* Centered vertically within image-section */
   left: 50%;
   transform: translate(-50%, -50%); /* Center the container */
-  width: 90%; /* Prevent text content hitting edges */
-  z-index: 10; /* Above background */
-  /* Text alignment and specific styles are handled by the content (e.g., .falling-word) */
+  width: 90%;
+  z-index: 10;
 }
 
-/* Button Assembly - Positioned at the bottom */
+/* Button Assembly - Now centered by flexbox in button-section */
 #button-assembly {
-  position: absolute;
-  bottom: 30px; /* Space from the bottom edge of #app */
-  left: 50%;
-  transform: translateX(-50%); /* Center horizontally */
-  z-index: 10; /* Above background */
+  /* Remove absolute positioning */
+  /* position: absolute; */
+  /* bottom: 30px; */
+  /* left: 50%; */
+  /* transform: translateX(-50%); */
+  /* z-index: 10; */
+  /* Flexbox on parent centers it */
 }
 
-/* === Falling Letters Animation Styles === */
-
-/* Container for the falling letters */
-.falling-word {
-  display: flex;         /* Use flex to layout spans */
-  justify-content: center; /* Center spans horizontally within the h1 */
-  color: white;          /* Text color */
-  font-weight: bold;     /* Text weight */
-  text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.7); /* Text shadow for readability */
-  margin: 0;             /* Remove default h1 margin */
-  padding: 0;            /* Remove default h1 padding */
-  /* NOTE: No position or top properties here; relies on #animal-name-display */
-}
-
-/* Individual letter styling and animation setup */
-.falling-word span {
-  display: inline-block; /* Treat each letter as a block for transform */
-  transform: translateY(-100vh); /* Start position way above the screen */
-  /* Apply the 'drop' animation */
-  animation: drop 1s cubic-bezier(0.33, 1.6, 0.66, 1) forwards;
-  /* Font size for the letters (adjust as needed) */
-  font-size: 2.5rem;
-  /* Space between letters */
-  margin: 0 2px;
-}
-
-/* Stagger the animation delays for each letter */
-.falling-word span:nth-child(1) { animation-delay: 1.0s; }
-.falling-word span:nth-child(2) { animation-delay: 1.1s; }
-.falling-word span:nth-child(3) { animation-delay: 1.2s; }
-.falling-word span:nth-child(4) { animation-delay: 1.3s; }
-.falling-word span:nth-child(5) { animation-delay: 1.4s; }
-.falling-word span:nth-child(6) { animation-delay: 1.5s; }
-.falling-word span:nth-child(7) { animation-delay: 1.6s; }
-/* Add more lines if your word has more letters */
-/* .falling-word span:nth-child(8) { animation-delay: 1.7s; } */
-
-/* Keyframes definition for the drop animation */
-@keyframes drop {
-  0% { /* Start state */
-    transform: translateY(-100vh);
-  }
-  60% { /* Overshoot downwards */
-    transform: translateY(20px);
-  }
-  75% { /* Bounce back up */
-    transform: translateY(-12px);
-  }
-  85% { /* Smaller overshoot */
-    transform: translateY(6px);
-  }
-  92% { /* Smaller bounce */
-    transform: translateY(-3px);
-  }
-  100% { /* Final resting state */
-    transform: translateY(0);
-  }
-}
-
-/* === Button Component Styles === */
-
-/* The outer gray ring - SIZE REDUCED */
-#bezel {
-  /* Size reduced by 50% from original */
-  width: 17.5vmin;
-  height: 17.5vmin;
-  max-width: 145px;
-  max-height: 145px;
-
-  position: relative; /* Context for positioning #inner-button */
-  border-radius: 50%; /* Make it round */
-  background-color: #E0E0E0; /* Base color */
-  background-image: linear-gradient( to bottom, #F5F5F5 0%, #D5D5D5 100% ); /* Gradient */
-
-  /* Adjusted shadows for smaller size */
-  box-shadow:
-    1px 1px 3px rgba(0, 0, 0, 0.2), /* Outer shadow */
-    inset 0px 0px 1px 1px rgba(0, 0, 0, 0.25), /* Inner edge shadow */
-    inset 1px 1px 2px rgba(255, 255, 255, 0.7); /* Inner highlight */
-}
-
-/* The inner red button */
-#inner-button {
-  /* Size relative to bezel */
-  width: 75%;
-  height: 75%;
-  /* Positioning within bezel */
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%); /* Center precisely */
-
-  /* Visual Styles */
-  border-radius: 50%;
-  background-image: radial-gradient( circle at 50% 70%, #B83340 0%, #8F1521 50%, #580C1F 95% );
-  /* Adjusted shadows slightly */
-   box-shadow:
-    inset 0px 0px 0px 1px rgba(88, 12, 31, 0.7), /* Inner edge definition */
-    inset 0px 2px 3px rgba(0, 0, 0, 0.35), /* Inner top shadow */
-    inset 0px -1px 1px rgba(255, 255, 255, 0.1); /* Faint inner bottom highlight */
-
-  /* Interaction/Misc */
-  cursor: pointer;
-  user-select: none; /* Prevent text selection */
-  -webkit-user-select: none;
-  -moz-user-select: none;
-  -ms-user-select: none;
-}
-
-/* Depressed State Styling */
-#inner-button.button-depressed {
-  transform: translate(-50%, -50%) scale(0.95); /* Combine centering with scale */
-  /* Adjusted shadows for flatter look */
-  box-shadow:
-    inset 0px 0px 0px 1px rgba(88, 12, 31, 0.7),
-    inset 0px 1px 2px rgba(0, 0, 0, 0.5);
-}
-
-/* === Fullscreen Button Styling === */
+/* Fullscreen Button - Positioned absolutely within button-section */
 #fullscreen-btn {
-  position: fixed; /* Fixed relative to viewport */
-  bottom: 15px;
-  right: 15px;
-  z-index: 100; /* Ensure it's above other content */
+  position: absolute; /* Relative to button-section */
+  bottom: 15px;     /* Space from bottom of button-section */
+  right: 15px;      /* Space from right of button-section */
+  z-index: 20; /* Ensure it's above button assembly if overlap occurs */
+
+  /* Visual styles remain mostly the same */
   background-color: rgba(50, 50, 50, 0.7);
-  color: white; /* Affects text color and SVG fill */
-  border: 1px solid rgba(255, 255, 255, 0.5);
+  color: white;
+  border: 1px solid rgba(150, 150, 150, 0.5); /* Slightly less bright border */
   border-radius: 5px;
   padding: 5px;
   cursor: pointer;
   opacity: 0.7;
   transition: opacity 0.2s ease-in-out;
-  display: inline-flex; /* Use flex powers */
-  align-items: center; /* Center icon vertically */
-  justify-content: center; /* Center icon horizontally */
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
 }
 
 #fullscreen-btn:hover {
@@ -188,22 +94,104 @@ body {
 }
 
 #fullscreen-btn svg {
-  display: block; /* Ensure SVG takes space correctly */
-  fill: currentColor; /* Use the button's text color */
+  display: block;
+  fill: currentColor;
 }
 
-/* Hiding/Showing fullscreen icons based on body class */
+/* Hiding/Showing fullscreen icons (logic remains same) */
 body.is-fullscreen #fullscreen-btn svg:first-of-type {
-  display: none; /* Hide expand icon when fullscreen */
+  display: none;
 }
 body:not(.is-fullscreen) #fullscreen-btn svg:last-of-type {
-  display: none; /* Hide contract icon when not fullscreen */
+  display: none;
+}
+
+/* === Falling Letters Animation Styles === */
+/* (No changes needed here from previous version) */
+.falling-word {
+  display: flex;
+  justify-content: center;
+  color: white;
+  font-weight: bold;
+  text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.7);
+  margin: 0;
+  padding: 0;
+}
+
+.falling-word span {
+  display: inline-block;
+  transform: translateY(-100vh);
+  animation: drop 1s cubic-bezier(0.33, 1.6, 0.66, 1) forwards;
+  font-size: 2.5rem;
+  margin: 0 2px;
+}
+
+.falling-word span:nth-child(1) { animation-delay: 1.0s; }
+.falling-word span:nth-child(2) { animation-delay: 1.1s; }
+.falling-word span:nth-child(3) { animation-delay: 1.2s; }
+.falling-word span:nth-child(4) { animation-delay: 1.3s; }
+.falling-word span:nth-child(5) { animation-delay: 1.4s; }
+.falling-word span:nth-child(6) { animation-delay: 1.5s; }
+.falling-word span:nth-child(7) { animation-delay: 1.6s; }
+
+@keyframes drop {
+  0% { transform: translateY(-100vh); }
+  60% { transform: translateY(20px); }
+  75% { transform: translateY(-12px); }
+  85% { transform: translateY(6px); }
+  92% { transform: translateY(-3px); }
+  100% { transform: translateY(0); }
+}
+
+/* === Button Component Styles === */
+/* (No changes needed for #bezel or #inner-button styles/sizes) */
+#bezel {
+  width: 17.5vmin;
+  height: 17.5vmin;
+  max-width: 145px;
+  max-height: 145px;
+  position: relative;
+  border-radius: 50%;
+  background-color: #E0E0E0;
+  background-image: linear-gradient( to bottom, #F5F5F5 0%, #D5D5D5 100% );
+  box-shadow:
+    1px 1px 3px rgba(0, 0, 0, 0.2),
+    inset 0px 0px 1px 1px rgba(0, 0, 0, 0.25),
+    inset 1px 1px 2px rgba(255, 255, 255, 0.7);
+}
+
+#inner-button {
+  width: 75%;
+  height: 75%;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  border-radius: 50%;
+  background-image: radial-gradient( circle at 50% 70%, #B83340 0%, #8F1521 50%, #580C1F 95% );
+   box-shadow:
+    inset 0px 0px 0px 1px rgba(88, 12, 31, 0.7),
+    inset 0px 2px 3px rgba(0, 0, 0, 0.35),
+    inset 0px -1px 1px rgba(255, 255, 255, 0.1);
+  cursor: pointer;
+  user-select: none;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+}
+
+#inner-button.button-depressed {
+  transform: translate(-50%, -50%) scale(0.95);
+  box-shadow:
+    inset 0px 0px 0px 1px rgba(88, 12, 31, 0.7),
+    inset 0px 1px 2px rgba(0, 0, 0, 0.5);
 }
 
 /* === Transitions === */
-/* Applied only after JS adds 'transitions-ready' to body */
+/* Transition applied only when JS adds class */
 
-body.transitions-ready #app {
+/* Background transition now on image-section */
+body.transitions-ready #image-section {
   transition: background-image 0.3s ease-in-out;
 }
 
@@ -213,7 +201,5 @@ body.transitions-ready #inner-button {
              background-image 0.1s ease-in-out;
 }
 
-/* Future: Add transition for #animal-name-display when animating */
-/* body.transitions-ready #animal-name-display {
-  transition: transform 0.5s ease-out, opacity 0.5s ease-out;
-} */
+/* Future: Add transition for animation if needed */
+/* body.transitions-ready .falling-word span { ... } */
