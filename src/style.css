@@ -114,13 +114,9 @@ body:not(.is-fullscreen) #fullscreen-btn svg:last-of-type {
 
 .falling-word span {
   display: inline-block;
-  font-family: 'Comic Neue', sans-serif;
-  font-size: 3.5rem;
-  font-weight: 800;
-  transform: translateY(-100vh);
+  transform: translateY(-100vh); /* Start above screen */
   animation: drop 1s cubic-bezier(0.33, 1.6, 0.66, 1) forwards;
-  margin: 0 2px;
-  padding-right: 8px;
+  margin: 0 2px; /* Space between letters */
 }
 
 .falling-word span:nth-child(1) { animation-delay: 1.0s; }

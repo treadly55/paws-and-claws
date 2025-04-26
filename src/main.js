@@ -1,5 +1,5 @@
 /* /src/main.js */
-/* Final Version with Button Disable during Animation */
+/* Corrected version with dynamic font size */
 
 // Import the CSS file
 import './style.css';
@@ -7,17 +7,25 @@ import './style.css';
 // --- 1. Unified Data Array ---
 const contentData = [
     { id: 1, name: "Panda", image: "/images/bg1.jpg" },
-    { id: 2, name: "Tiger", image: "/images/bg2.jpg" },
+    { id: 2, name: "Rhinoc", image: "/images/bg2.jpg" },
     { id: 3, name: "Koala", image: "/images/bg3.jpg" },
     { id: 4, name: "Eagle", image: "/images/bg4.jpg" },
+    { id: 5, name: "Rhinocero", image: "/images/bg1.jpg"}, // Example longer word
+    { id: 6, name: "Ant", image: "/images/bg2.jpg"},        // Example shorter word
     // Add more items here
 ];
 
-// --- 2. Initialize Current Index ---
+// --- 2. State Variables ---
 let currentIndex = 0;
+let isImageTransitionComplete = false;
+let isWordAnimationComplete = false;
+let isContentReady = false;
+let isTransitioning = false; // Tracks if animations/fades are active
 
-// --- Add variable to store disable timeout ---
+// --- Timeout IDs ---
 let enableButtonTimeoutId = null;
+let imageReadyTimeoutId = null;
+let wordReadyTimeoutId = null;
 
 // --- 3. Select DOM Elements ---
 const imageSectionElement = document.querySelector('#image-section');
@@ -31,20 +39,53 @@ if (!animalNameDisplayElement) console.error("CRITICAL ERROR: #animal-name-displ
 if (!innerButton) console.error("CRITICAL ERROR: #inner-button not found!");
 if (contentData.length === 0) console.error("CRITICAL ERROR: contentData array is empty!");
 
+// --- Constants for Font Size Calculation ---
+const MAX_FONT_SIZE_REM = 7;   // Max size for short words (tune this)
+const MIN_FONT_SIZE_REM = 2.5;   // Smallest allowed size (tune this)
+const SHRINK_THRESHOLD_LENGTH = 5; // Start shrinking font size *after* this many characters (tune this)
 
-// --- 4. displayFallingWord Helper Function (Unchanged) ---
+/**
+ * Calculates an appropriate font size based on word length.
+ * @param {string} wordString - The word to calculate font size for.
+ * @returns {number} - The calculated font size in rem.
+ */
+function calculateFontSize(wordString) {
+    const wordLength = wordString.length;
+    let calculatedSizeRem;
+
+    if (wordLength <= SHRINK_THRESHOLD_LENGTH) {
+        calculatedSizeRem = MAX_FONT_SIZE_REM;
+    } else {
+        const scaleFactor = SHRINK_THRESHOLD_LENGTH / wordLength;
+        calculatedSizeRem = MAX_FONT_SIZE_REM * scaleFactor;
+        calculatedSizeRem = Math.max(MIN_FONT_SIZE_REM, calculatedSizeRem);
+        calculatedSizeRem = Math.min(MAX_FONT_SIZE_REM, calculatedSizeRem); // Safety clamp max
+    }
+    console.log(`[DEBUG] Word: "${wordString}" (${wordLength} chars), Calculated Font Size: ${calculatedSizeRem.toFixed(2)}rem`);
+    return calculatedSizeRem;
+}
+
+// --- 4. displayFallingWord Helper Function ---
+// --- >>> CORRECTED: Calls calculateFontSize and adds class <<< ---
 function displayFallingWord(wordString, containerElement) {
     const existingH1 = containerElement.querySelector('.falling-word');
     if (existingH1) {
         existingH1.remove();
     }
+
     const newH1 = document.createElement('h1');
-    newH1.classList.add('falling-word');
+    newH1.classList.add('falling-word'); // <<< FIXED: Add class back
+
+    // --- Call calculateFontSize and apply style ---
+    const dynamicFontSizeRem = calculateFontSize(wordString); // <<< FIXED: Call the function
+    newH1.style.fontSize = `${dynamicFontSizeRem}rem`;       // <<< FIXED: Apply calculated size
+    // ----------------------------------------------
+
     const letters = wordString.split('');
     letters.forEach((letter, index) => {
         const newSpan = document.createElement('span');
         newSpan.textContent = letter;
-        const delay = 1.0 + index * 0.1; // Base delay 1.0s, increment 0.1s
+        const delay = 1.0 + index * 0.1;
         newSpan.style.animationDelay = `${delay}s`;
         newH1.appendChild(newSpan);
     });
@@ -52,91 +93,144 @@ function displayFallingWord(wordString, containerElement) {
 }
 
 
-// --- 5. Initial State Setup (Unchanged) ---
-if (imageSectionElement && contentData.length > 0) {
-    imageSectionElement.style.backgroundImage = `url(${contentData[currentIndex].image})`;
-    console.log(`Initial background set to: ${contentData[currentIndex].image}`);
+// --- 5. checkIfReady Function (Unchanged from your version) ---
+function checkIfReady() {
+    console.log(`[DEBUG] Checking readiness: ImageComplete=${isImageTransitionComplete}, WordComplete=${isWordAnimationComplete}`);
+    if (isImageTransitionComplete && isWordAnimationComplete) {
+        isContentReady = true;
+        isTransitioning = false; // Clear busy flag
+        console.log(`%c>>> Content is now fully ready! (isTransitioning = false) <<<`, 'color: lightgreen; font-weight: bold;');
+
+        // Reset individual flags for the next cycle check
+        isImageTransitionComplete = false;
+        isWordAnimationComplete = false;
+    }
 }
-if (animalNameDisplayElement && contentData.length > 0) {
-    displayFallingWord(contentData[currentIndex].name, animalNameDisplayElement);
-    console.log(`Initial word displayed: ${contentData[currentIndex].name}`);
-}
+// --- End checkIfReady Function ---
 
 
-// --- 6. Button Interaction Logic ---
-if (innerButton && imageSectionElement && animalNameDisplayElement && contentData.length > 0) {
+// --- 6. Initial State Setup (Unchanged from your version) ---
+const IMAGE_TRANSITION_DURATION_MS = 1000; // 1.0s (Ensure this matches CSS)
+if (contentData.length > 0) {
+    const initialItem = contentData[currentIndex];
 
-  const handlePress = (event) => {
-    if (event.type === 'touchstart') {
-        event.preventDefault();
+    if (imageSectionElement) {
+        imageSectionElement.style.backgroundImage = `url(${initialItem.image})`;
+        console.log(`Initial background set to: ${initialItem.image}`);
+        isImageTransitionComplete = false;
+        clearTimeout(imageReadyTimeoutId);
+        imageReadyTimeoutId = setTimeout(() => {
+            console.log("[DEBUG] Initial Image transition finished.");
+            isImageTransitionComplete = true;
+            checkIfReady();
+        }, IMAGE_TRANSITION_DURATION_MS);
+    } else {
+        console.error('Cannot set initial background: #image-section not found.');
     }
 
-    // --- >>> 1. DISABLE BUTTON IMMEDIATELY <<< ---
-    innerButton.disabled = true;
-    console.log(`[DEBUG] Button disabled at: ${performance.now()}`); // Log timestamp
+    if (animalNameDisplayElement) {
+        displayFallingWord(initialItem.name, animalNameDisplayElement); // Will now use calculateFontSize
+        console.log(`Initial word displayed: ${initialItem.name}`);
+        const wordLength = initialItem.name.length;
+        const baseDelayMs = 1000;
+        const incrementDelayMs = 100;
+        const keyframeDurationMs = 1000;
+        const totalWordAnimationTimeMs = baseDelayMs + (wordLength > 0 ? (wordLength - 1) * incrementDelayMs : 0) + keyframeDurationMs;
+        isWordAnimationComplete = false;
+        clearTimeout(wordReadyTimeoutId);
+        wordReadyTimeoutId = setTimeout(() => {
+            console.log("[DEBUG] Initial Word animation finished.");
+            isWordAnimationComplete = true;
+            checkIfReady();
+        }, totalWordAnimationTimeMs);
+    } else {
+        console.error('Cannot display initial word: #animal-name-display not found.');
+    }
+} else {
+    console.error("Cannot initialize: contentData is empty.");
+}
+// --- End Initial State Setup ---
 
-    innerButton.classList.add('button-depressed');
 
-    // --- Update Content Based on Unified Data ---
-    currentIndex = (currentIndex + 1) % contentData.length;
-    const newItem = contentData[currentIndex];
-    const newImageUrl = newItem.image;
-    const newWord = newItem.name;
+// --- 7. Button Interaction Logic (Unchanged from your version) ---
+if (innerButton && imageSectionElement && animalNameDisplayElement && contentData.length > 0) {
 
-    // Update Background Image
-    imageSectionElement.style.backgroundImage = `url(${newImageUrl})`;
-    // console.log(`Background changed to: ${newImageUrl}`); // Keep logs minimal for debugging timing
+    const handlePress = (event) => {
+        if (event.type === 'touchstart') {
+            event.preventDefault();
+        }
 
-    // Update Falling Word (This happens synchronously)
-    displayFallingWord(newWord, animalNameDisplayElement);
-    // console.log(`Word changed to: ${newWord}`);
+        // Guard Clause
+        if (isTransitioning) {
+            console.log("[INFO] Ignored press: Transition already in progress.");
+            return;
+        }
 
-    // --- >>> 2. CALCULATE ANIMATION DURATION <<< ---
-    const wordLength = newWord.length;
-    const baseDelayMs = 1000; // 1.0s in ms
-    const incrementDelayMs = 100; // 0.1s in ms
-    const keyframeDurationMs = 1000; // 1s in ms
+        // Set Busy Flag
+        isTransitioning = true;
+        console.log("[DEBUG] Starting transition, isTransitioning = true");
 
-    const lastLetterStartTimeMs = baseDelayMs + (wordLength > 0 ? (wordLength - 1) * incrementDelayMs : 0);
-    const totalAnimationTimeMs = lastLetterStartTimeMs + keyframeDurationMs;
+        // Start Press Sequence
+        innerButton.disabled = true;
+        console.log(`[DEBUG] Button disabled at: ${performance.now()}`);
+        innerButton.classList.add('button-depressed');
 
-    // --- >>> Log Calculation Results <<< ---
-    console.log(`[DEBUG] Word: "${newWord}", Length: ${wordLength}`);
-    console.log(`[DEBUG] Last letter starts: ${lastLetterStartTimeMs}ms`);
-    console.log(`[DEBUG] Total animation time calculated: ${totalAnimationTimeMs}ms`);
-    console.log(`[DEBUG] Setting timeout to re-enable button at: ${performance.now()}`);
+        // Reset Readiness Flags
+        isContentReady = false;
+        isImageTransitionComplete = false;
+        isWordAnimationComplete = false;
+        console.log("[DEBUG] Readiness flags reset.");
 
-    // --- >>> 3. SET TIMEOUT TO RE-ENABLE BUTTON <<< ---
-    clearTimeout(enableButtonTimeoutId); // Clear previous timeout just in case
+        // Clear previous readiness timers
+        clearTimeout(imageReadyTimeoutId);
+        clearTimeout(wordReadyTimeoutId);
+        clearTimeout(enableButtonTimeoutId);
 
-    enableButtonTimeoutId = setTimeout(() => {
-        // --- >>> Log when timeout callback runs <<< ---
-        console.log(`[DEBUG] Timeout fired at: ${performance.now()}. Re-enabling button.`);
-        innerButton.disabled = false;
-        // console.log("Button re-enabled."); // Included in debug log
-    }, totalAnimationTimeMs);
+        // Update Content
+        currentIndex = (currentIndex + 1) % contentData.length;
+        const newItem = contentData[currentIndex];
+        const newImageUrl = newItem.image;
+        const newWord = newItem.name;
 
-    // --- >>> Alternative Test: Fixed Duration <<< ---
-    // Uncomment the block below and comment out the block above
-    // to test with a fixed 5-second delay instead of calculated time.
-    /*
-    const FIXED_DELAY_MS = 5000; // Test with 5 seconds
-    console.log(`[DEBUG] Using FIXED delay of ${FIXED_DELAY_MS}ms`);
-    clearTimeout(enableButtonTimeoutId);
-    enableButtonTimeoutId = setTimeout(() => {
-         console.log(`[DEBUG] FIXED Timeout fired at: ${performance.now()}. Re-enabling button.`);
-         innerButton.disabled = false;
-    }, FIXED_DELAY_MS);
-    */
+        // Update Background & Start Image Timer
+        imageSectionElement.style.backgroundImage = `url(${newImageUrl})`;
+        console.log(`Background change triggered for: ${newImageUrl}`);
+        imageReadyTimeoutId = setTimeout(() => {
+            console.log("[DEBUG] Image transition finished.");
+            isImageTransitionComplete = true;
+            checkIfReady();
+        }, IMAGE_TRANSITION_DURATION_MS);
 
-};
+        // Update Word & Start Word Timer (+ Button Re-enable)
+        displayFallingWord(newWord, animalNameDisplayElement); // Will now use calculateFontSize
+        console.log(`Word change triggered for: ${newWord}`);
+
+        // Calculate word animation time
+        const wordLength = newWord.length;
+        const baseDelayMs = 1000;
+        const incrementDelayMs = 100;
+        const keyframeDurationMs = 1000;
+        const totalWordAnimationTimeMs = baseDelayMs + (wordLength > 0 ? (wordLength - 1) * incrementDelayMs : 0) + keyframeDurationMs;
+        console.log(`[DEBUG] Word: "${newWord}", Length: ${wordLength}, Total Anim Time: ${totalWordAnimationTimeMs}ms`);
+
+        // Set timeout for word animation completion AND button re-enabling
+        wordReadyTimeoutId = setTimeout(() => {
+            console.log("[DEBUG] Word animation finished.");
+            isWordAnimationComplete = true;
+            innerButton.disabled = false; // Re-enable button
+            console.log(`[DEBUG] Button re-enabled at: ${performance.now()}`);
+            checkIfReady(); // Check readiness now
+        }, totalWordAnimationTimeMs);
+
+        enableButtonTimeoutId = wordReadyTimeoutId;
+
+    }; // End handlePress
 
     const handleRelease = (event) => {
-        // Only remove depressed class, don't re-enable here
         innerButton.classList.remove('button-depressed');
     };
 
-    // Attach listeners (Unchanged)
+    // Attach Listeners
     innerButton.addEventListener('mousedown', handlePress);
     innerButton.addEventListener('touchstart', handlePress);
     innerButton.addEventListener('mouseup', handleRelease);
@@ -145,12 +239,12 @@ if (innerButton && imageSectionElement && animalNameDisplayElement && contentDat
     innerButton.addEventListener('touchcancel', handleRelease);
 
 } else {
+     // Error logging & initial disable
     console.error("Button Interaction Setup Failed:");
     if (!innerButton) console.error("- #inner-button missing.");
     if (!imageSectionElement) console.error("- #image-section missing.");
     if (!animalNameDisplayElement) console.error("- #animal-name-display missing.");
     if (contentData.length === 0) console.error("- contentData array is empty.");
-    // Disable button from the start if setup failed
     if(innerButton) innerButton.disabled = true;
 }
 // --- End Button Interaction ---
