@@ -34,6 +34,11 @@ body {
   background-repeat: no-repeat;
 }
 
+#image-section h1 {
+  margin-top: 400px;
+
+}
+
 /* === Bottom Button Section (25% height) === */
 #button-section {
   height: 25vh; /* 1/4 of the viewport height */
@@ -55,17 +60,6 @@ body {
   transform: translate(-50%, -50%); /* Center the container */
   width: 90%;
   z-index: 10;
-}
-
-/* Button Assembly - Now centered by flexbox in button-section */
-#button-assembly {
-  /* Remove absolute positioning */
-  /* position: absolute; */
-  /* bottom: 30px; */
-  /* left: 50%; */
-  /* transform: translateX(-50%); */
-  /* z-index: 10; */
-  /* Flexbox on parent centers it */
 }
 
 /* Fullscreen Button - Positioned absolutely within button-section */
@@ -120,10 +114,13 @@ body:not(.is-fullscreen) #fullscreen-btn svg:last-of-type {
 
 .falling-word span {
   display: inline-block;
+  font-family: 'Comic Neue', sans-serif;
+  font-size: 3.5rem;
+  font-weight: 800;
   transform: translateY(-100vh);
   animation: drop 1s cubic-bezier(0.33, 1.6, 0.66, 1) forwards;
-  font-size: 2.5rem;
   margin: 0 2px;
+  padding-right: 8px;
 }
 
 .falling-word span:nth-child(1) { animation-delay: 1.0s; }
@@ -146,8 +143,8 @@ body:not(.is-fullscreen) #fullscreen-btn svg:last-of-type {
 /* === Button Component Styles === */
 /* (No changes needed for #bezel or #inner-button styles/sizes) */
 #bezel {
-  width: 17.5vmin;
-  height: 17.5vmin;
+  width: 145px;     /* Fixed width */
+  height: 145px;    /* Fixed height */
   max-width: 145px;
   max-height: 145px;
   position: relative;
@@ -155,9 +152,9 @@ body:not(.is-fullscreen) #fullscreen-btn svg:last-of-type {
   background-color: #E0E0E0;
   background-image: linear-gradient( to bottom, #F5F5F5 0%, #D5D5D5 100% );
   box-shadow:
-    1px 1px 3px rgba(0, 0, 0, 0.2),
-    inset 0px 0px 1px 1px rgba(0, 0, 0, 0.25),
-    inset 1px 1px 2px rgba(255, 255, 255, 0.7);
+    1px 1px 3px rgba(0, 0, 0, 0.2), /* Outer shadow */
+    inset 0px 0px 1px 1px rgba(0, 0, 0, 0.25), /* Inner edge shadow */
+    inset 1px 1px 2px rgba(255, 255, 255, 0.7); /* Inner highlight */
 }
 
 #inner-button {
@@ -192,7 +189,7 @@ body:not(.is-fullscreen) #fullscreen-btn svg:last-of-type {
 
 /* Background transition now on image-section */
 body.transitions-ready #image-section {
-  transition: background-image 0.3s ease-in-out;
+  transition: background-image 2.6s ease-in-out;
 }
 
 body.transitions-ready #inner-button {
@@ -200,6 +197,18 @@ body.transitions-ready #inner-button {
              box-shadow 0.1s ease-in-out,
              background-image 0.1s ease-in-out;
 }
+
+/* /src/style.css */
+
+/* ... other styles ... */
+
+/* Styling for the disabled button state */
+#inner-button:disabled {
+  cursor: not-allowed; /* Indicate non-interactive state */
+  opacity: 0.6; /* Make it look faded */
+}
+
+/* ... rest of styles ... */
 
 /* Future: Add transition for animation if needed */
 /* body.transitions-ready .falling-word span { ... } */
