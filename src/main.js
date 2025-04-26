@@ -7,12 +7,9 @@ import './style.css';
 // --- 1. Unified Data Array ---
 const contentData = [
     { id: 1, name: "Panda", image: "/images/bg1.jpg" },
-    { id: 2, name: "Rhinoc", image: "/images/bg2.jpg" },
-    { id: 3, name: "Koala", image: "/images/bg3.jpg" },
-    { id: 4, name: "Eagle", image: "/images/bg4.jpg" },
-    { id: 5, name: "Rhinocero", image: "/images/bg1.jpg"}, // Example longer word
-    { id: 6, name: "Ant", image: "/images/bg2.jpg"},        // Example shorter word
-    // Add more items here
+    { id: 2, name: "Rhino", image: "/images/bg2.jpg" },
+    { id: 3, name: "Lion", image: "/images/bg3.jpg" },
+    { id: 4, name: "Zebra", image: "/images/bg4.jpg" }
 ];
 
 // --- 2. State Variables ---

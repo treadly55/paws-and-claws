@@ -103,6 +103,7 @@ body:not(.is-fullscreen) #fullscreen-btn svg:last-of-type {
 /* === Falling Letters Animation Styles === */
 /* (No changes needed here from previous version) */
 .falling-word {
+  font-family: 'Baloo 2', 'Comic Neue', 'Arial', sans-serif;
   display: flex;
   justify-content: center;
   color: white;
