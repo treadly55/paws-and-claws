@@ -45,6 +45,13 @@ if (!animalNameDisplayElement) console.error("CRITICAL ERROR: #animal-name-displ
 if (!innerButton) console.error("CRITICAL ERROR: #inner-button not found!");
 if (contentData.length === 0) console.error("CRITICAL ERROR: contentData array is empty!");
 
+// --- >>> NEW: Trigger Image Preloading <<< ---
+if (contentData.length > 0) {
+    preloadAllImages(contentData); // Call the preloading function
+}
+// --- End Trigger Image Preloading ---
+
+
 // --- Set Initial Body State Class ---
 document.body.classList.remove('state-main');
 document.body.classList.add('state-start');
@@ -163,6 +170,47 @@ function goToMainApp() {
     console.log("[STATE] Body class set to: state-main");
     initializeMainApp();
 }
+
+
+// --- >>> NEW: Image Preloading Function <<< ---
+/**
+ * Initiates download for all images in the provided data array.
+ * @param {Array<object>} dataArray - The array of content data objects (e.g., contentData).
+ */
+function preloadAllImages(dataArray) {
+    if (!dataArray || dataArray.length === 0) {
+        console.warn("[PRELOAD] No data provided for preloading.");
+        return;
+    }
+    console.log(`[PRELOAD] Starting preload for ${dataArray.length} images...`);
+
+    dataArray.forEach((item, index) => {
+        // Check if the item has an image path
+        if (item.image && typeof item.image === 'string') {
+            const img = new Image(); // Create an in-memory image element
+
+            // Optional: Log success when image is loaded into cache/memory
+            img.onload = () => {
+                // Keep this commented out unless debugging, can be noisy
+                // console.log(`[PRELOAD] Image ${index + 1} (${item.name || 'N/A'}) loaded: ${item.image}`);
+            };
+
+            // Log errors if an image fails to load
+            img.onerror = () => {
+                console.error(`[PRELOAD] Failed to load image ${index + 1} (${item.name || 'N/A'}): ${item.image}`);
+            };
+
+            // Setting the src triggers the browser to start downloading the image
+            img.src = item.image;
+        } else {
+            console.warn(`[PRELOAD] Item ${index + 1} has no valid image path.`);
+        }
+    });
+}
+// --- End Image Preloading Function ---
+
+
+
 
 // --- Event Listeners ---
 
