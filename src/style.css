@@ -14,6 +14,7 @@ body {
   max-width: 400px; /* Phone-like width */
   margin: 0 auto; /* Center horizontally */
   box-sizing: border-box;
+  position: relative;
   display: flex; /* Use flexbox to arrange sections */
   flex-direction: column; /* Stack sections vertically */
   min-height: 100vh; /* Make app container fill viewport height */
@@ -137,6 +138,38 @@ body:not(.is-fullscreen) #fullscreen-btn svg:last-of-type {
   100% { transform: translateY(0); }
 }
 
+/* === State Visibility Control === */
+
+/* Default State: When body has class "state-start" */
+body.state-start #image-section,
+body.state-start #button-section {
+  display: none; /* Hide main app sections */
+  /* Explicitly hide them */
+}
+
+body.state-start #start-screen {
+  display: flex; /* Ensure start screen is visible and uses flex (as defined in its own rule) */
+}
+
+
+/* Main App State: When body has class "state-main" */
+body.state-main #start-screen {
+  display: none; /* Hide start screen */
+}
+
+body.state-main #image-section {
+  display: block; /* Show image section (use 'block' or 'flex' as appropriate for its content) */
+  /* height: 75vh; *//* Height should already be set in #image-section rule */
+}
+
+body.state-main #button-section {
+  display: flex; /* Show button section (it uses flex for centering) */
+  /* height: 25vh; */ /* Height should already be set in #button-section rule */
+}
+
+/* === End State Visibility Control === */
+
+
 /* === Button Component Styles === */
 /* (No changes needed for #bezel or #inner-button styles/sizes) */
 #bezel {
@@ -195,17 +228,60 @@ body.transitions-ready #inner-button {
              background-image 0.1s ease-in-out;
 }
 
-/* /src/style.css */
-
-/* ... other styles ... */
-
 /* Styling for the disabled button state */
 #inner-button:disabled {
   cursor: not-allowed; /* Indicate non-interactive state */
   opacity: 0.6; /* Make it look faded */
 }
 
-/* ... rest of styles ... */
 
-/* Future: Add transition for animation if needed */
-/* body.transitions-ready .falling-word span { ... } */
+/* === Start Screen Styling === */
+#start-screen {
+  /* Positioning & Sizing */
+  position: absolute; /* Position relative to the nearest positioned ancestor (#app should be relative) */
+  inset: 0; /* Shortcut for top: 0; right: 0; bottom: 0; left: 0; - Fills #app */
+  box-sizing: border-box; /* Include padding in size */
+  z-index: 200; /* Make sure it's visually on top of other #app content */
+
+  /* Background */
+  background-color: #FAFAFA; /* Light off-white background */
+
+  /* Flexbox for Centering Content */
+  display: flex;
+  flex-direction: column; /* Stack children (h2, buttons) vertically */
+  justify-content: center; /* Center vertically */
+  align-items: center; /* Center horizontally */
+  padding: 30px; /* Add some padding around the content */
+  gap: 20px; /* Add space BETWEEN flex children (h2 and buttons, and between buttons) */
+}
+
+#start-screen h2 {
+  /* Optional styling for the title */
+  font-family: 'Baloo 2', cursive; /* Example using one of your imported fonts */
+  font-size: 2.5rem; /* Adjust size */
+  color: #444; /* Dark grey color */
+  margin: 0; /* Remove default margin if needed, gap handles spacing */
+  /* margin-bottom: 15px; */ /* Use gap on parent instead */
+  text-align: center;
+}
+
+.start-button {
+  /* Button Styling */
+  padding: 12px 25px; /* Padding inside button */
+  font-size: 1.1rem; /* Text size */
+  font-family: 'Open Sans', sans-serif; /* Example font */
+  color: #333;
+  background-color: #fff; /* White background */
+  border: 1px solid #ccc; /* Light grey border */
+  border-radius: 6px; /* Slightly rounded corners */
+  cursor: pointer; /* Indicate clickable */
+  min-width: 180px; /* Minimum width */
+  text-align: center;
+  transition: background-color 0.2s ease, box-shadow 0.2s ease; /* Smooth hover */
+  box-shadow: 0 2px 4px rgba(0,0,0,0.05); /* Subtle shadow */
+}
+
+.start-button:hover {
+  background-color: #f0f0f0; /* Slightly darker background on hover */
+  box-shadow: 0 3px 6px rgba(0,0,0,0.1); /* Slightly larger shadow on hover */
+}
