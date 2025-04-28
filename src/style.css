@@ -23,46 +23,57 @@ body {
   background-color: #fff; /* Optional: base background if needed */
 }
 
-/* === NEW: Title Bar Styling === */
+/* === Title Bar Styling (Using Grid) === */
 #title-bar {
   height: 55px; /* Fixed height */
-  flex-shrink: 0; /* Prevent shrinking */
-  background-color: #ffffff;
-  color: #000000;
-  display: flex;
-  align-items: center;
-  padding: 0 10px;
+  flex-shrink: 0; /* Prevent shrinking if #app flex settings change */
+  color: #1b1b1b; /* Text color */
+  background-color: #ffffff; /* Background color */
   box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-  z-index: 150; /* Above sections, below start screen */
+  z-index: 150;
+  padding: 0; /* Remove padding, manage spacing via grid/children */
+
+  /* --- Grid Layout --- */
+  display: grid;
+  grid-template-columns: 1fr 4fr 1fr; /* Columns: 1/6, 4/6, 1/6 */
+  align-items: stretch; /* Make children fill height by default */
 }
 
 #back-button {
-  background: none;
-  border: none;
-  color: #000000;
-  font-size: 1rem;
+  /* Grid placement implicitly column 1 */
+  background-color: #2d4ade; /* Keep style */
+  border: none; /* Keep style */
+  color: #e2e2e2; /* Keep style */
+  font-size: 1.1rem; /* Adjusted slightly */
   font-weight: bold;
+  font-family: 'Baloo 2', cursive;
   cursor: pointer;
-  padding: 5px 10px;
-  margin-right: 10px;
-  flex-shrink: 0;
+  transition: opacity 0.2s ease; /* Keep hover transition */
+  /* --- Flexbox for internal centering --- */
+  display: flex;
+  align-items: center; /* Center text vertically */
+  justify-content: center; /* Center text horizontally */
+  /* Height is automatically stretched by parent grid's align-items: stretch */
 }
 
 #back-button:hover {
-  opacity: 0.7;
+  opacity: 0.8; /* Adjusted hover opacity */
 }
 
 #title-text {
-  flex-grow: 1;
-  text-align: center;
-  font-size: 1.2rem;
+  grid-column: 2 / 3; /* Place in the middle column */
+  text-align: center; /* Center text horizontally */
+  align-self: center; /* Center vertically within the stretched grid cell */
+
+  /* Text styling */
+  font-size: 1.3rem; /* Adjusted slightly */
   font-weight: bold;
-  font-family: 'Baloo 2', cursive; /* Example font */
+  font-family: 'Baloo 2', cursive;
+  color: #1b1b1b; /* Ensure color is set if different from parent */
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  /* Adjust padding to prevent overlap with potential right-side icons later */
-  padding-right: calc(50px + 10px); /* Approx width of back button + margin */
+  padding: 0 5px; /* Add minimal horizontal padding */
 }
 /* === End Title Bar Styling === */
 
@@ -137,7 +148,7 @@ body {
 /* === Content Positioning Adjustments === */
 #animal-name-display {
   position: absolute;
-  top: 50%; /* Centered vertically within image-section */
+  top: 85%; /* Centered vertically within image-section */
   left: 50%;
   transform: translate(-50%, -50%); /* Center the container */
   width: 90%;
@@ -274,25 +285,35 @@ body.transitions-ready #inner-button {
 
 /* === Start Screen Styling === */
 #start-screen {
+  /* Positioning & Sizing (Keep As Is) */
   position: absolute;
   inset: 0;
   box-sizing: border-box;
   z-index: 200;
   background-color: #FAFAFA;
+  padding: 30px; /* Padding for inner content if needed */
+  /* Flexbox for Centering the MAIN BUTTON GROUP (squares) */
   display: flex;
   flex-direction: column;
+  /* Justify centers the non-absolute items (square buttons) in available space */
   justify-content: center;
+  /* Align centers the non-absolute items horizontally */
   align-items: center;
-  padding: 30px;
-  gap: 20px;
+  gap: 20px; /* Space BETWEEN the square buttons */
 }
 
 #start-screen h2 {
   font-family: 'Baloo 2', cursive;
   font-size: 2.5rem;
   color: #444;
-  margin: 0;
-  text-align: center;
+  margin: 0; /* Reset margin */
+  text-align: center; /* Center text within its own box */
+  /* Absolute Positioning */
+  position: absolute;
+  width: 90%; /* Prevent text from hitting edges */
+  top: 8%; /* Position roughly 1/6th down from the top. Adjust % as needed. */
+  left: 50%;
+  transform: translate(-50%, -50%); /* Center horizontally and vertically around the 'top' point */
 }
 
 .start-button {
@@ -308,11 +329,42 @@ body.transitions-ready #inner-button {
   text-align: center;
   transition: background-color 0.2s ease, box-shadow 0.2s ease;
   box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+  /* Remove margin-bottom if using gap */
+  /* margin-bottom: 15px; */
 }
-
 .start-button:hover {
   background-color: #f0f0f0;
   box-shadow: 0 3px 6px rgba(0,0,0,0.1);
+}
+
+#start-btn-settings {
+  position: absolute;
+  bottom: 30px; /* Position 30px from the bottom. Adjust as needed. */
+  left: 50%;
+  transform: translateX(-50%); /* Center horizontally */
+  /* It will inherit width/padding etc. from .start-button */
+}
+
+
+/* --- >>> NEW: Square Button Specific Styles <<< --- */
+.square-button {
+  /* Override dimensions */
+  width: 130px;  /* Adjust px value for desired size */
+  height: 130px; /* Should be same as width */
+  min-width: 0; /* Override min-width from .start-button */
+  padding: 10px; /* Adjust padding inside the square */
+  aspect-ratio: 1 / 1; /* Strongly enforce square shape */
+  /* Appearance */
+  border-radius: 20px; /* More rounded corners for square look */
+  /* Text styling/centering within the square */
+  font-size: 1.3rem; /* Increase font size? Adjust as needed */
+  font-weight: bold;
+  line-height: 1.2; /* Helps with vertical centering */
+  text-align: center; /* Ensure text is centered */
+  /* Use flex to perfectly center multi-line text if needed */
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 /* === State Visibility Control === */
@@ -332,7 +384,7 @@ body.state-main #start-screen {
   display: none;
 }
 body.state-main #title-bar { /* <<< Show Title Bar */
-  display: flex; /* Use flex as defined in its base style */
+  display: grid; /* Use flex as defined in its base style */
 }
 body.state-main #image-section {
   display: block; /* Restore display */

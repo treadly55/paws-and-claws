@@ -6,11 +6,30 @@ import './style.css';
 
 // --- 1. Unified Data Array ---
 const contentData = [
-    { id: 1, name: "Panda", image: "/images/bg1.jpg" },
-    { id: 2, name: "Rhino", image: "/images/bg2.jpg" },
-    { id: 3, name: "Lion", image: "/images/bg3.jpg" },
-    { id: 4, name: "Zebra", image: "/images/bg4.jpg" },
-    // Add more words/images
+    {
+        id: 1,
+        name: "Horse",
+        image: "/images/bg1.jpg",
+        sound: "/sounds/horse-neigh.mp3" 
+    },
+    {
+        id: 2,
+        name: "Duck",
+        image: "/images/bg2.jpg",
+        sound: "/sounds/duck-quack.mp3" 
+    },
+    {
+        id: 3,
+        name: "Lion",
+        image: "/images/bg3.jpg",
+        sound: "/sounds/dog-bark.mp3"   
+    },
+    {
+        id: 4,
+        name: "Zebra",
+        image: "/images/bg4.jpg",
+        sound: "/sounds/duck-quack.mp3"     
+    }
 ];
 
 // --- 2. State Variables ---
@@ -19,6 +38,7 @@ let isWordAnimationComplete = false;
 let isContentReady = false;
 let isTransitioning = false;
 let isSoundOn = true; // Assume sound starts ON
+let currentWordTapAudio = null;
 
 // --- Timeout IDs ---
 let enableButtonTimeoutId = null;       // For button re-enable (tied to word anim)
@@ -49,9 +69,7 @@ if (!backButton) console.warn("WARN: Back button '#back-button' not found.");
 
 // --- Helper Functions ---
 
-/**
- * Initiates download for all images in the provided data array. (Step 1)
- */
+// Initiates download for all images in the provided data array. //
 function preloadAllImages(dataArray) {
     if (!dataArray || dataArray.length === 0) {
         console.warn("[PRELOAD] No data provided for preloading.");
@@ -68,9 +86,8 @@ function preloadAllImages(dataArray) {
     });
 }
 
-/**
- * Calculates font size based on word length.
- */
+
+//Calculates font size based on word length.//
 function calculateFontSize(wordString) {
     const wordLength = wordString.length;
     let calculatedSizeRem;
@@ -86,9 +103,8 @@ function calculateFontSize(wordString) {
     return calculatedSizeRem;
 }
 
-/**
- * Displays the falling word animation.
- */
+
+ //Displays the falling word animation.//
 function displayFallingWord(wordString, containerElement) {
     const existingH1 = containerElement.querySelector('.falling-word');
     if (existingH1) existingH1.remove();
@@ -107,9 +123,7 @@ function displayFallingWord(wordString, containerElement) {
     containerElement.appendChild(newH1);
 }
 
-/**
- * Checks if content cycle is complete (now only based on word animation). (Step 4)
- */
+//Checks if content cycle is complete (now only based on word animation)//
 function checkIfReady() {
     // --- >>> MODIFIED: Only check word completion <<< ---
     console.log(`[DEBUG] Checking readiness: WordComplete=${isWordAnimationComplete}`);
@@ -123,7 +137,68 @@ function checkIfReady() {
     }
 }
 
-// --- >>> NEW: Function to Go Back to Start Screen <<< ---
+// --- >>> NEW: Handler for Word Area Tap <<< ---
+/**
+ * Handles clicks/taps on the animal name display area to replay the current sound.
+ * Prevents re-triggering while the sound is already playing from a word tap.
+ * @param {Event} event - The click event object (optional, not strictly needed now).
+ */
+function handleWordTap(event) {
+    // 1. Check if a word tap sound is currently playing and hasn't ended
+    if (currentWordTapAudio && !currentWordTapAudio.ended) {
+        console.log("[SOUND] Word tap ignored, previous tap sound still playing.");
+        return; // Don't start a new sound if one is already playing from a tap
+    }
+
+    // 2. Get the sound URL for the CURRENTLY displayed item
+    // Ensure currentIndex is valid and contentData exists (should be okay if app is running)
+    if (currentIndex < 0 || currentIndex >= contentData.length) {
+        console.error("[SOUND] Invalid currentIndex for word tap sound.");
+        return;
+    }
+    const currentSoundUrl = contentData[currentIndex]?.sound; // Use optional chaining
+
+    // 3. Check if there's a sound URL for the current item
+    if (currentSoundUrl) {
+        console.log(`[SOUND] Word tapped. Attempting to play sound for index ${currentIndex}: ${currentSoundUrl}`);
+
+        // 4. Call playSound (which checks global mute state) and get the Audio object
+        const newAudio = playSound(currentSoundUrl);
+
+        // 5. If playSound returned an Audio object (i.e., not muted/error)
+        if (newAudio) {
+            // Store reference to this specific audio instance
+            currentWordTapAudio = newAudio;
+
+            // 6. Add listener for when THIS specific sound finishes
+            newAudio.onended = () => {
+                console.log(`[SOUND] Word tap sound finished: ${currentSoundUrl}`);
+                // Only clear the global reference if it STILL points to this audio object
+                // (Prevents race conditions if user clicks extremely fast)
+                if (currentWordTapAudio === newAudio) {
+                    currentWordTapAudio = null;
+                }
+            };
+
+            // 7. Add listener for errors during playback for THIS instance
+            newAudio.onerror = () => {
+                console.error(`[SOUND] Error during word tap playback: ${currentSoundUrl}`);
+                // Clear the reference if it was this audio object that failed
+                if (currentWordTapAudio === newAudio) {
+                    currentWordTapAudio = null;
+                }
+            };
+        }
+    } else {
+        console.log(`[SOUND] Word tapped, but no sound associated with current item index ${currentIndex}.`);
+    }
+}
+// --- End handleWordTap Function ---
+
+
+
+
+//--- >>> Function to Go Back to Start Screen <<< ---//
 function goToStartScreen() {
     console.log("[STATE] Transitioning back to Start Screen state...");
 
@@ -146,9 +221,8 @@ function goToStartScreen() {
 // --- End goToStartScreen Function ---
 
 
-/**
- * Initializes the main application view state. (Step 5)
- */
+
+ //Initializes the main application view state.//
 function initializeMainApp() {
     console.log("[SETUP] Initializing Main App view...");
     isTransitioning = false;
@@ -162,18 +236,12 @@ function initializeMainApp() {
     }
     // --- End NEW ---
 
-
     if (contentData.length > 0) {
         const initialItem = contentData[currentIndex];
-
+        // Initialize background
         if (imageSectionElement) {
             imageSectionElement.style.backgroundImage = `url(${initialItem.image})`;
             console.log(`Initial background set to: ${initialItem.image}`);
-            // --- >>> REMOVED image readiness timer logic <<< ---
-            // isImageTransitionComplete = false;
-            // clearTimeout(imageReadyTimeoutId);
-            // imageReadyTimeoutId = setTimeout(...);
-            // --- End Removal ---
         } else { console.error('Cannot set initial background: #image-section not found.'); }
 
         if (animalNameDisplayElement) {
@@ -194,7 +262,18 @@ function initializeMainApp() {
                 checkIfReady(); // Simplified checkIfReady is called
             }, totalWordAnimationTimeMs);
         } else { console.error('Cannot display initial word: #animal-name-display not found.'); }
-    } else { console.error("Cannot initialize: contentData is empty."); }
+
+             // --- >>> Schedule Initial Sound Playback <<< ---
+            const initialSoundUrl = initialItem.sound;
+            if (initialSoundUrl) {
+                console.log(`[SOUND] Scheduling initial sound ${initialSoundUrl} in 1000ms`);
+                setTimeout(() => {
+                    playSound(initialSoundUrl); // Play the sound for the first item after 1s
+                }, 1000);
+            } else {
+                console.log(`[SOUND] No initial sound associated with item index ${currentIndex}`);
+            }
+        } else { console.error("Cannot initialize: contentData is empty."); }
 }
 
 /**
@@ -229,6 +308,51 @@ function toggleSoundState() {
 }
 // --- End Sound Toggle Function ---
 
+/**
+ * Plays a sound if sound is enabled.
+ * @param {string} soundUrl - The path to the audio file.
+ * @returns {HTMLAudioElement | null} - The created Audio object or null if not played.
+ */
+
+
+// --- >>> Function to Play Sound <<< ---
+function playSound(soundUrl) {
+    // 1. Check the global mute state FIRST
+    if (!isSoundOn) {
+        console.log(`[SOUND] Playback skipped (Muted): ${soundUrl}`);
+        return null;
+    }
+    // 2. Check if a valid URL was provided
+    if (!soundUrl || typeof soundUrl !== 'string') {
+        console.warn(`[SOUND] Invalid or missing sound URL provided.`);
+        return null; 
+    }
+    console.log(`[SOUND] Attempting to play: ${soundUrl}`);
+    
+    try {
+        // 3. Create Audio object
+        const audio = new Audio(soundUrl); // <<< This is the object we'll return
+
+        // 4. Play audio
+        const playPromise = audio.play();
+
+        if (playPromise !== undefined) {
+            playPromise
+                .then(_ => { /* Playback started */ })
+                .catch(error => { console.error(`[SOUND] Error playing ${soundUrl}:`, error); });
+        }
+        // --- >>> MODIFIED: Return the audio object <<< ---
+        return audio;
+        // --- End Modification ---
+
+    } catch (error) {
+        console.error(`[SOUND] Error creating Audio object for ${soundUrl}:`, error);
+        return null; // <<< MODIFIED: Return null on error
+    }
+}
+// --- End Play Sound Function ---
+
+
 
 // --- Trigger Image Preloading (Step 2) ---
 if (contentData.length > 0) {
@@ -242,6 +366,13 @@ console.log("[STATE] Initial state set to: state-start");
 
 
 // --- Event Listeners ---
+
+// --- >>> Word Area Tap Listener <<< ---
+if (animalNameDisplayElement) {
+    animalNameDisplayElement.addEventListener('click', handleWordTap);
+    console.log("[SETUP] Word tap listener attached to #animal-name-display.");
+} // Error if missing already logged earlier
+
 
 // Start Button Listeners
 const startButtons = document.querySelectorAll('.start-button');
@@ -272,7 +403,6 @@ if (innerButton && imageSectionElement && animalNameDisplayElement && contentDat
 
     const handlePress = (event) => {
         if (event.type === 'touchstart') event.preventDefault();
-
         // Guard clause (unchanged)
         if (isTransitioning) {
             console.log("[INFO] Ignored press: Transition already in progress.");
@@ -303,17 +433,28 @@ if (innerButton && imageSectionElement && animalNameDisplayElement && contentDat
         const newItem = contentData[currentIndex];
         const newImageUrl = newItem.image;
         const newWord = newItem.name;
+        const newSoundUrl = newItem.sound
 
         // Update Background (Set directly, no timer)
         imageSectionElement.style.backgroundImage = `url(${newImageUrl})`;
         console.log(`Background change triggered for: ${newImageUrl}`);
-        // --- >>> REMOVED image readiness timer logic <<< ---
-        // imageReadyTimeoutId = setTimeout(...);
-        // --- End Removal ---
 
-        // Update Word & Start Word Timer (+ Button Re-enable) (Unchanged)
+        // Update Word & Start Word Timer 
         displayFallingWord(newWord, animalNameDisplayElement);
         console.log(`Word change triggered for: ${newWord}`);
+
+        // --- >>> Schedule Sound Playback (NEW) <<< ---
+        if (newSoundUrl) {
+            console.log(`[SOUND] Scheduling sound ${newSoundUrl} in 1000ms`);
+            // Use setTimeout to delay the playback call
+            setTimeout(() => {
+                playSound(newSoundUrl); // Call our helper function after delay
+            }, 1000); // 1000ms = 1 second delay
+        } else {
+            // Log if no sound is associated with this item
+            console.log(`[SOUND] No sound associated with item index ${currentIndex} (${newWord})`);
+        }
+        // --- End Schedule Sound Playback ---
 
         const wordLength = newWord.length;
         const baseDelayMs = 1000;
@@ -322,6 +463,7 @@ if (innerButton && imageSectionElement && animalNameDisplayElement && contentDat
         const totalWordAnimationTimeMs = baseDelayMs + (wordLength > 0 ? (wordLength - 1) * incrementDelayMs : 0) + keyframeDurationMs;
         console.log(`[DEBUG] Word: "${newWord}", Length: ${wordLength}, Total Anim Time: ${totalWordAnimationTimeMs}ms`);
 
+        // Set timeout for word animation completion AND button re-enabling //
         wordReadyTimeoutId = setTimeout(() => {
             console.log("[DEBUG] Word animation finished.");
             isWordAnimationComplete = true;
