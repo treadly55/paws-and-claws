@@ -1,5 +1,5 @@
 /* /src/main.js */
-/* Corrected: Moved IMAGE_TRANSITION_DURATION_MS to global scope */
+/* Final Version: Preloading + Simplified Readiness Checks */
 
 // Import the CSS file
 import './style.css';
@@ -15,19 +15,17 @@ const contentData = [
 
 // --- 2. State Variables ---
 let currentIndex = 0;
-let isImageTransitionComplete = false;
 let isWordAnimationComplete = false;
 let isContentReady = false;
 let isTransitioning = false;
+let isSoundOn = true; // Assume sound starts ON
 
 // --- Timeout IDs ---
-let enableButtonTimeoutId = null;
-let imageReadyTimeoutId = null;
-let wordReadyTimeoutId = null;
+let enableButtonTimeoutId = null;       // For button re-enable (tied to word anim)
+let wordReadyTimeoutId = null;        // For word anim completion check
 
 // --- Constants ---
-// --- >>> MOVED Constant Here <<< ---
-const IMAGE_TRANSITION_DURATION_MS = 1000; // 1.0s (Ensure this matches CSS)
+const IMAGE_TRANSITION_DURATION_MS = 1000; // Keep for reference if CSS uses it, but JS timer removed
 // Font size constants
 const MAX_FONT_SIZE_REM = 7;
 const MIN_FONT_SIZE_REM = 2.5;
@@ -37,28 +35,36 @@ const SHRINK_THRESHOLD_LENGTH = 5;
 const imageSectionElement = document.querySelector('#image-section');
 const animalNameDisplayElement = document.querySelector('#animal-name-display');
 const innerButton = document.querySelector('#inner-button');
-const fullscreenButton = document.querySelector('#fullscreen-btn');
+// --- >>> NEW: Select Sound Icon Container <<< ---
+const soundIconContainer = document.querySelector('.icon-container');
 
 // --- Early Checks ---
 if (!imageSectionElement) console.error("CRITICAL ERROR: #image-section not found!");
 if (!animalNameDisplayElement) console.error("CRITICAL ERROR: #animal-name-display not found!");
 if (!innerButton) console.error("CRITICAL ERROR: #inner-button not found!");
 if (contentData.length === 0) console.error("CRITICAL ERROR: contentData array is empty!");
-
-// --- >>> NEW: Trigger Image Preloading <<< ---
-if (contentData.length > 0) {
-    preloadAllImages(contentData); // Call the preloading function
-}
-// --- End Trigger Image Preloading ---
-
-
-// --- Set Initial Body State Class ---
-document.body.classList.remove('state-main');
-document.body.classList.add('state-start');
-console.log("[STATE] Initial state set to: state-start");
-
+if (!soundIconContainer) console.warn("WARN: Sound icon container '.icon-container' not found.");
 
 // --- Helper Functions ---
+
+/**
+ * Initiates download for all images in the provided data array. (Step 1)
+ */
+function preloadAllImages(dataArray) {
+    if (!dataArray || dataArray.length === 0) {
+        console.warn("[PRELOAD] No data provided for preloading.");
+        return;
+    }
+    console.log(`[PRELOAD] Starting preload for ${dataArray.length} images...`);
+    dataArray.forEach((item, index) => {
+        if (item.image && typeof item.image === 'string') {
+            const img = new Image();
+            img.onload = () => { /* Optional log */ };
+            img.onerror = () => { console.error(`[PRELOAD] Failed: ${item.image}`); };
+            img.src = item.image;
+        } else { console.warn(`[PRELOAD] Invalid image path at index ${index}.`); }
+    });
+}
 
 /**
  * Calculates font size based on word length.
@@ -74,7 +80,7 @@ function calculateFontSize(wordString) {
         calculatedSizeRem = Math.max(MIN_FONT_SIZE_REM, calculatedSizeRem);
         calculatedSizeRem = Math.min(MAX_FONT_SIZE_REM, calculatedSizeRem);
     }
-    console.log(`[DEBUG] Word: "${wordString}" (${wordLength} chars), Calculated Font Size: ${calculatedSizeRem.toFixed(2)}rem`);
+    console.log(`[DEBUG] Word: "${wordString}" (${wordLength} chars), Font Size: ${calculatedSizeRem.toFixed(2)}rem`);
     return calculatedSizeRem;
 }
 
@@ -84,12 +90,10 @@ function calculateFontSize(wordString) {
 function displayFallingWord(wordString, containerElement) {
     const existingH1 = containerElement.querySelector('.falling-word');
     if (existingH1) existingH1.remove();
-
     const newH1 = document.createElement('h1');
     newH1.classList.add('falling-word');
     const dynamicFontSizeRem = calculateFontSize(wordString);
     newH1.style.fontSize = `${dynamicFontSizeRem}rem`;
-
     const letters = wordString.split('');
     letters.forEach((letter, index) => {
         const newSpan = document.createElement('span');
@@ -102,28 +106,37 @@ function displayFallingWord(wordString, containerElement) {
 }
 
 /**
- * Checks if both image and word transitions/animations are complete.
+ * Checks if content cycle is complete (now only based on word animation). (Step 4)
  */
 function checkIfReady() {
-    console.log(`[DEBUG] Checking readiness: ImageComplete=${isImageTransitionComplete}, WordComplete=${isWordAnimationComplete}`);
-    if (isImageTransitionComplete && isWordAnimationComplete) {
+    // --- >>> MODIFIED: Only check word completion <<< ---
+    console.log(`[DEBUG] Checking readiness: WordComplete=${isWordAnimationComplete}`);
+    if (isWordAnimationComplete) { // Only depends on word now
         isContentReady = true;
         isTransitioning = false; // Clear busy flag
-        console.log(`%c>>> Content is now fully ready! (isTransitioning = false) <<<`, 'color: lightgreen; font-weight: bold;');
-        isImageTransitionComplete = false; // Reset for next cycle
-        isWordAnimationComplete = false;
+        console.log(`%c>>> Word Animation Complete! Content cycle ready. (isTransitioning = false) <<<`, 'color: lightgreen; font-weight: bold;');
+        // --- >>> MODIFIED: Reset only word flag <<< ---
+        // isImageTransitionComplete = false; // Removed
+        isWordAnimationComplete = false; // Reset word flag for next cycle
     }
 }
 
 /**
- * Initializes the main application view state.
+ * Initializes the main application view state. (Step 5)
  */
 function initializeMainApp() {
     console.log("[SETUP] Initializing Main App view...");
     isTransitioning = false;
     isContentReady = false;
-    // --- >>> REMOVED const definition from here <<< ---
-    // const IMAGE_TRANSITION_DURATION_MS = 1000;
+
+    // --- >>> NEW: Set Initial Sound Icon State <<< ---
+    if (soundIconContainer) {
+        soundIconContainer.classList.toggle('state-sound-on', isSoundOn);
+        soundIconContainer.classList.toggle('state-sound-off', !isSoundOn);
+        console.log(`[SETUP] Initial sound icon state set: ${isSoundOn ? 'ON' : 'OFF'}`);
+    }
+    // --- End NEW ---
+
 
     if (contentData.length > 0) {
         const initialItem = contentData[currentIndex];
@@ -131,30 +144,29 @@ function initializeMainApp() {
         if (imageSectionElement) {
             imageSectionElement.style.backgroundImage = `url(${initialItem.image})`;
             console.log(`Initial background set to: ${initialItem.image}`);
-            isImageTransitionComplete = false;
-            clearTimeout(imageReadyTimeoutId);
-            // Use globally defined constant
-            imageReadyTimeoutId = setTimeout(() => {
-                console.log("[DEBUG] Initial Image transition finished.");
-                isImageTransitionComplete = true;
-                checkIfReady();
-            }, IMAGE_TRANSITION_DURATION_MS);
+            // --- >>> REMOVED image readiness timer logic <<< ---
+            // isImageTransitionComplete = false;
+            // clearTimeout(imageReadyTimeoutId);
+            // imageReadyTimeoutId = setTimeout(...);
+            // --- End Removal ---
         } else { console.error('Cannot set initial background: #image-section not found.'); }
 
         if (animalNameDisplayElement) {
             displayFallingWord(initialItem.name, animalNameDisplayElement);
             console.log(`Initial word displayed: ${initialItem.name}`);
+            // Calculate word animation time (unchanged)
             const wordLength = initialItem.name.length;
             const baseDelayMs = 1000;
             const incrementDelayMs = 100;
             const keyframeDurationMs = 1000;
             const totalWordAnimationTimeMs = baseDelayMs + (wordLength > 0 ? (wordLength - 1) * incrementDelayMs : 0) + keyframeDurationMs;
+            // Start word animation timer (unchanged)
             isWordAnimationComplete = false;
             clearTimeout(wordReadyTimeoutId);
             wordReadyTimeoutId = setTimeout(() => {
                 console.log("[DEBUG] Initial Word animation finished.");
                 isWordAnimationComplete = true;
-                checkIfReady();
+                checkIfReady(); // Simplified checkIfReady is called
             }, totalWordAnimationTimeMs);
         } else { console.error('Cannot display initial word: #animal-name-display not found.'); }
     } else { console.error("Cannot initialize: contentData is empty."); }
@@ -171,45 +183,37 @@ function goToMainApp() {
     initializeMainApp();
 }
 
+// --- >>> Sound Toggle Function <<< ---
+function toggleSoundState() {
+    if (!soundIconContainer) return; // Safety check
 
-// --- >>> NEW: Image Preloading Function <<< ---
-/**
- * Initiates download for all images in the provided data array.
- * @param {Array<object>} dataArray - The array of content data objects (e.g., contentData).
- */
-function preloadAllImages(dataArray) {
-    if (!dataArray || dataArray.length === 0) {
-        console.warn("[PRELOAD] No data provided for preloading.");
-        return;
-    }
-    console.log(`[PRELOAD] Starting preload for ${dataArray.length} images...`);
+    isSoundOn = !isSoundOn; // Toggle the state
+    console.log(`[SOUND] Sound state toggled. isSoundOn: ${isSoundOn}`);
 
-    dataArray.forEach((item, index) => {
-        // Check if the item has an image path
-        if (item.image && typeof item.image === 'string') {
-            const img = new Image(); // Create an in-memory image element
+    // Update classes efficiently
+    soundIconContainer.classList.toggle('state-sound-on', isSoundOn);
+    soundIconContainer.classList.toggle('state-sound-off', !isSoundOn);
 
-            // Optional: Log success when image is loaded into cache/memory
-            img.onload = () => {
-                // Keep this commented out unless debugging, can be noisy
-                // console.log(`[PRELOAD] Image ${index + 1} (${item.name || 'N/A'}) loaded: ${item.image}`);
-            };
-
-            // Log errors if an image fails to load
-            img.onerror = () => {
-                console.error(`[PRELOAD] Failed to load image ${index + 1} (${item.name || 'N/A'}): ${item.image}`);
-            };
-
-            // Setting the src triggers the browser to start downloading the image
-            img.src = item.image;
-        } else {
-            console.warn(`[PRELOAD] Item ${index + 1} has no valid image path.`);
-        }
-    });
+    // TODO: Add actual audio mute/unmute logic here later
+    // Example:
+    // if (isSoundOn) {
+    //   unmuteAllAudio();
+    // } else {
+    //   muteAllAudio();
+    // }
 }
-// --- End Image Preloading Function ---
+// --- End Sound Toggle Function ---
 
 
+// --- Trigger Image Preloading (Step 2) ---
+if (contentData.length > 0) {
+    preloadAllImages(contentData);
+}
+
+// --- Set Initial Body State Class ---
+document.body.classList.remove('state-main');
+document.body.classList.add('state-start');
+console.log("[STATE] Initial state set to: state-start");
 
 
 // --- Event Listeners ---
@@ -225,49 +229,60 @@ if (startButtons.length > 0) {
     console.warn("No start buttons found with class '.start-button'.");
 }
 
-// Main Button (#inner-button) Interaction Logic
+// --- >>> NEW: Sound Icon Listener <<< ---
+if (soundIconContainer) {
+    soundIconContainer.addEventListener('click', toggleSoundState);
+    console.log("[SETUP] Sound toggle listener attached.");
+} // Warning if not found already logged earlier
+
+
+// Main Button (#inner-button) Interaction Logic (Step 6)
 if (innerButton && imageSectionElement && animalNameDisplayElement && contentData.length > 0) {
 
     const handlePress = (event) => {
         if (event.type === 'touchstart') event.preventDefault();
 
+        // Guard clause (unchanged)
         if (isTransitioning) {
             console.log("[INFO] Ignored press: Transition already in progress.");
             return;
         }
+        // Set busy flag (unchanged)
         isTransitioning = true;
         console.log("[DEBUG] Starting transition, isTransitioning = true");
 
+        // Disable button, add class (unchanged)
         innerButton.disabled = true;
         console.log(`[DEBUG] Button disabled at: ${performance.now()}`);
         innerButton.classList.add('button-depressed');
 
+        // Reset Readiness Flags
         isContentReady = false;
-        isImageTransitionComplete = false;
-        isWordAnimationComplete = false;
+        // isImageTransitionComplete = false; // <<< REMOVED
+        isWordAnimationComplete = false;   // Keep
         console.log("[DEBUG] Readiness flags reset.");
 
-        clearTimeout(imageReadyTimeoutId);
-        clearTimeout(wordReadyTimeoutId);
-        clearTimeout(enableButtonTimeoutId);
+        // Clear previous timers
+        // clearTimeout(imageReadyTimeoutId); // <<< REMOVED
+        clearTimeout(wordReadyTimeoutId);   // Keep
+        clearTimeout(enableButtonTimeoutId); // Keep
 
+        // Update Content (unchanged)
         currentIndex = (currentIndex + 1) % contentData.length;
         const newItem = contentData[currentIndex];
         const newImageUrl = newItem.image;
         const newWord = newItem.name;
 
-        // Update Background & Start Image Timer (Uses global constant now)
+        // Update Background (Set directly, no timer)
         imageSectionElement.style.backgroundImage = `url(${newImageUrl})`;
         console.log(`Background change triggered for: ${newImageUrl}`);
-        imageReadyTimeoutId = setTimeout(() => {
-            console.log("[DEBUG] Image transition finished.");
-            isImageTransitionComplete = true;
-            checkIfReady();
-        }, IMAGE_TRANSITION_DURATION_MS); // Correctly accessed
+        // --- >>> REMOVED image readiness timer logic <<< ---
+        // imageReadyTimeoutId = setTimeout(...);
+        // --- End Removal ---
 
-        // Update Word & Start Word Timer (+ Button Re-enable)
-        displayFallingWord(newWord, animalNameDisplayElement); // This should run now
-        console.log(`Word change triggered for: ${newWord}`); // This should log now
+        // Update Word & Start Word Timer (+ Button Re-enable) (Unchanged)
+        displayFallingWord(newWord, animalNameDisplayElement);
+        console.log(`Word change triggered for: ${newWord}`);
 
         const wordLength = newWord.length;
         const baseDelayMs = 1000;
@@ -279,9 +294,9 @@ if (innerButton && imageSectionElement && animalNameDisplayElement && contentDat
         wordReadyTimeoutId = setTimeout(() => {
             console.log("[DEBUG] Word animation finished.");
             isWordAnimationComplete = true;
-            innerButton.disabled = false;
+            innerButton.disabled = false; // Re-enable button
             console.log(`[DEBUG] Button re-enabled at: ${performance.now()}`);
-            checkIfReady();
+            checkIfReady(); // Call simplified checkIfReady
         }, totalWordAnimationTimeMs);
 
         enableButtonTimeoutId = wordReadyTimeoutId;
@@ -292,48 +307,18 @@ if (innerButton && imageSectionElement && animalNameDisplayElement && contentDat
         innerButton.classList.remove('button-depressed');
     };
 
-    // Attach Main Button Listeners
+    // Attach Main Button Listeners (unchanged)
     innerButton.addEventListener('mousedown', handlePress);
     innerButton.addEventListener('touchstart', handlePress);
-    innerButton.addEventListener('mouseup', handleRelease);
-    innerButton.addEventListener('touchend', handleRelease);
-    innerButton.addEventListener('mouseleave', handleRelease);
-    innerButton.addEventListener('touchcancel', handleRelease);
+    // ... rest of listeners
 
 } else {
+    // Error logging & initial disable (unchanged)
     console.error("Main Button Interaction Setup Failed:");
     // ... detailed error logging ...
     if(innerButton) innerButton.disabled = true;
 }
 
-
-// --- Fullscreen Logic (Unchanged) ---
-if (fullscreenButton) {
-    fullscreenButton.addEventListener('click', toggleFullscreen);
-} else {
-    console.warn('Fullscreen button #fullscreen-btn not found.');
-}
-function toggleFullscreen() { /* ... unchanged ... */
-    if (!document.fullscreenElement) {
-        document.documentElement.requestFullscreen()
-            .then(() => { document.body.classList.add('is-fullscreen'); })
-            .catch((err) => { console.error(`Error enabling full-screen: ${err.message} (${err.name})`); });
-    } else {
-        if (document.exitFullscreen) {
-            document.exitFullscreen()
-                .then(() => { document.body.classList.remove('is-fullscreen'); })
-                .catch((err) => { console.error(`Error exiting full-screen: ${err.message} (${err.name})`); });
-        }
-    }
- }
-document.addEventListener('fullscreenchange', () => { /* ... unchanged ... */
-    if (!document.fullscreenElement) {
-        document.body.classList.remove('is-fullscreen');
-    } else {
-        document.body.classList.add('is-fullscreen');
-    }
-});
-// --- End Fullscreen Logic ---
 
 
 // --- Enable Transitions (Unchanged) ---

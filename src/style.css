@@ -1,5 +1,5 @@
 /* /src/style.css */
-/* Updated Layout: Image Section (75%) + Button Section (25%) */
+/* Updated Layout: Image Section (75%) + Button Section (25%) + Grid Layout */
 
 /* === Basic Reset / Body Styling === */
 body {
@@ -9,51 +9,100 @@ body {
   background-color: #E0E0E0; /* Outer background */
 }
 
-/* === App Container - Now uses Flexbox for sections === */
+/* === App Container === */
 #app {
   max-width: 400px; /* Phone-like width */
   margin: 0 auto; /* Center horizontally */
   box-sizing: border-box;
-  position: relative;
+  position: relative; /* Needed for absolute positioning of start-screen */
   display: flex; /* Use flexbox to arrange sections */
   flex-direction: column; /* Stack sections vertically */
   min-height: 100vh; /* Make app container fill viewport height */
-  /* No background here anymore */
-  /* No position: relative needed unless specifically for pseudo-elements on #app */
 }
 
 /* === Top Image/Text Section (75% height) === */
 #image-section {
-  height: 75vh; /* 3/4 of the viewport height */
-  position: relative; /* Positioning context for #animal-name-display */
-  overflow: hidden; /* Hide any overflow from content */
-
-  /* Background Image Styling (Moved here from #app) */
-  background-color: #222; /* Fallback */
+  height: 75vh;
+  position: relative;
+  overflow: hidden;
+  background-color: #222;
   background-size: cover;
   background-position: center center;
   background-repeat: no-repeat;
 }
 
+/* Note: This rule might push your falling text down significantly */
 #image-section h1 {
   margin-top: 400px;
-
 }
 
-/* === Bottom Button Section (25% height) === */
+/* === Bottom Button Section (25% height) - Using Grid === */
 #button-section {
-  height: 25vh; /* 1/4 of the viewport height */
-  background-color: #F5F5F5; /* Off-white background */
-  position: relative; /* Positioning context for button assembly and fullscreen btn */
-  display: flex; /* Use flexbox to center the button assembly */
-  justify-content: center; /* Center horizontally */
-  align-items: center; /* Center vertically */
-  box-sizing: border-box; /* Include padding/border in height */
+  height: 25vh;
+  background-color: #F5F5F5;
+  position: relative; /* Context for absolute children like potential tooltips etc. */
+  box-sizing: border-box;
+  padding: 10px;
+
+  /* --- Grid Layout --- */
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr; /* Three equal columns */
+  align-items: center; /* Vertically center items in their grid row */
 }
+
+/* === Button Assembly Placement (Inside Grid) === */
+#button-assembly {
+  grid-column: 2 / 3; /* Place in the second column */
+  justify-self: center; /* Center horizontally within the column */
+  align-self: center; /* Center vertically within the row */
+}
+
+/* === Icon Container Styling & Placement (NEW) === */
+.icon-container {
+  grid-column: 3 / 4;
+  justify-self: center;
+  align-self: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  /* Add padding if needed to increase click area */
+  padding-left: 40px;
+  padding-top: 10px;
+}
+
+/* === Basic SVG Styling (NEW) === */
+.icon-container svg {
+  display: block;
+  width: 60px; /* Adjusted size slightly */
+  height: 60px; /* Adjusted size slightly */
+  fill: #666; /* Slightly darker grey */
+  cursor: pointer;
+  transition: fill 0.2s ease;
+}
+
+.icon-container svg:hover {
+  fill: #111; /* Example hover effect */
+}
+
+/* === Icon Visibility Rules === */
+/* Hide sound-off icon when sound is ON */
+.icon-container.state-sound-on #icon-sound-off {
+  display: none;
+}
+/* Hide sound-on icon when sound is OFF */
+.icon-container.state-sound-off #icon-sound-on {
+  display: none;
+}
+/* Ensure the correct icon is displayed (block or inline-block as needed) */
+.icon-container.state-sound-on #icon-sound-on {
+  display: block; /* Or inline-block */
+}
+.icon-container.state-sound-off #icon-sound-off {
+  display: block; /* Or inline-block */
+}
+
 
 /* === Content Positioning Adjustments === */
-
-/* Animal Name Display - Positioned within image-section */
 #animal-name-display {
   position: absolute;
   top: 50%; /* Centered vertically within image-section */
@@ -63,46 +112,7 @@ body {
   z-index: 10;
 }
 
-/* Fullscreen Button - Positioned absolutely within button-section */
-#fullscreen-btn {
-  position: absolute; /* Relative to button-section */
-  bottom: 15px;     /* Space from bottom of button-section */
-  right: 15px;      /* Space from right of button-section */
-  z-index: 20; /* Ensure it's above button assembly if overlap occurs */
-
-  /* Visual styles remain mostly the same */
-  background-color: rgba(50, 50, 50, 0.7);
-  color: white;
-  border: 1px solid rgba(150, 150, 150, 0.5); /* Slightly less bright border */
-  border-radius: 5px;
-  padding: 5px;
-  cursor: pointer;
-  opacity: 0.7;
-  transition: opacity 0.2s ease-in-out;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-}
-
-#fullscreen-btn:hover {
-  opacity: 1;
-}
-
-#fullscreen-btn svg {
-  display: block;
-  fill: currentColor;
-}
-
-/* Hiding/Showing fullscreen icons (logic remains same) */
-body.is-fullscreen #fullscreen-btn svg:first-of-type {
-  display: none;
-}
-body:not(.is-fullscreen) #fullscreen-btn svg:last-of-type {
-  display: none;
-}
-
 /* === Falling Letters Animation Styles === */
-/* (No changes needed here from previous version) */
 .falling-word {
   font-family: 'Baloo 2', 'Comic Neue', 'Arial', sans-serif;
   display: flex;
@@ -112,13 +122,19 @@ body:not(.is-fullscreen) #fullscreen-btn svg:last-of-type {
   text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.7);
   margin: 0;
   padding: 0;
+   /* --- Prevent Text Selection --- */
+  -webkit-user-select: none; /* Safari */
+  -moz-user-select: none;    /* Firefox */
+  -ms-user-select: none;     /* IE/Edge */
+  user-select: none;         /* Standard */
 }
 
 .falling-word span {
   display: inline-block;
-  transform: translateY(-100vh); /* Start above screen */
+  transform: translateY(-100vh);
   animation: drop 1s cubic-bezier(0.33, 1.6, 0.66, 1) forwards;
-  margin: 0 2px; /* Space between letters */
+  margin: 0 2px;
+  /* font-size is set dynamically on parent h1 by JS */
 }
 
 .falling-word span:nth-child(1) { animation-delay: 1.0s; }
@@ -126,8 +142,8 @@ body:not(.is-fullscreen) #fullscreen-btn svg:last-of-type {
 .falling-word span:nth-child(3) { animation-delay: 1.2s; }
 .falling-word span:nth-child(4) { animation-delay: 1.3s; }
 .falling-word span:nth-child(5) { animation-delay: 1.4s; }
-.falling-word span:nth-child(6) { animation-delay: 1.5s; }
-.falling-word span:nth-child(7) { animation-delay: 1.6s; }
+/* Add more if needed */
+
 
 @keyframes drop {
   0% { transform: translateY(-100vh); }
@@ -143,48 +159,39 @@ body:not(.is-fullscreen) #fullscreen-btn svg:last-of-type {
 /* Default State: When body has class "state-start" */
 body.state-start #image-section,
 body.state-start #button-section {
-  display: none; /* Hide main app sections */
-  /* Explicitly hide them */
+  display: none;
 }
-
 body.state-start #start-screen {
-  display: flex; /* Ensure start screen is visible and uses flex (as defined in its own rule) */
+  display: flex;
 }
-
 
 /* Main App State: When body has class "state-main" */
 body.state-main #start-screen {
-  display: none; /* Hide start screen */
+  display: none;
 }
-
 body.state-main #image-section {
-  display: block; /* Show image section (use 'block' or 'flex' as appropriate for its content) */
-  /* height: 75vh; *//* Height should already be set in #image-section rule */
+  display: block; /* Or initial display type */
 }
-
+/* CORRECTED display property for main state */
 body.state-main #button-section {
-  display: flex; /* Show button section (it uses flex for centering) */
-  /* height: 25vh; */ /* Height should already be set in #button-section rule */
+  display: grid; /* Use grid to match its base style */
 }
-
 /* === End State Visibility Control === */
 
 
 /* === Button Component Styles === */
-/* (No changes needed for #bezel or #inner-button styles/sizes) */
 #bezel {
-  width: 145px;     /* Fixed width */
-  height: 145px;    /* Fixed height */
-  max-width: 145px;
-  max-height: 145px;
+  width: 145px;
+  height: 145px;
+  /* Removed redundant max-width/height */
   position: relative;
   border-radius: 50%;
   background-color: #E0E0E0;
   background-image: linear-gradient( to bottom, #F5F5F5 0%, #D5D5D5 100% );
   box-shadow:
-    1px 1px 3px rgba(0, 0, 0, 0.2), /* Outer shadow */
-    inset 0px 0px 1px 1px rgba(0, 0, 0, 0.25), /* Inner edge shadow */
-    inset 1px 1px 2px rgba(255, 255, 255, 0.7); /* Inner highlight */
+    1px 1px 3px rgba(0, 0, 0, 0.2),
+    inset 0px 0px 1px 1px rgba(0, 0, 0, 0.25),
+    inset 1px 1px 2px rgba(255, 255, 255, 0.7);
 }
 
 #inner-button {
@@ -214,11 +221,15 @@ body.state-main #button-section {
     inset 0px 1px 2px rgba(0, 0, 0, 0.5);
 }
 
-/* === Transitions === */
-/* Transition applied only when JS adds class */
+/* Styling for the disabled button state */
+#inner-button:disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
 
-/* Background transition now on image-section */
+/* === Transitions === */
 body.transitions-ready #image-section {
+  /* Increased fade duration from user input */
   transition: background-image 2.6s ease-in-out;
 }
 
@@ -228,60 +239,46 @@ body.transitions-ready #inner-button {
              background-image 0.1s ease-in-out;
 }
 
-/* Styling for the disabled button state */
-#inner-button:disabled {
-  cursor: not-allowed; /* Indicate non-interactive state */
-  opacity: 0.6; /* Make it look faded */
-}
-
 
 /* === Start Screen Styling === */
 #start-screen {
-  /* Positioning & Sizing */
-  position: absolute; /* Position relative to the nearest positioned ancestor (#app should be relative) */
-  inset: 0; /* Shortcut for top: 0; right: 0; bottom: 0; left: 0; - Fills #app */
-  box-sizing: border-box; /* Include padding in size */
-  z-index: 200; /* Make sure it's visually on top of other #app content */
-
-  /* Background */
-  background-color: #FAFAFA; /* Light off-white background */
-
-  /* Flexbox for Centering Content */
+  position: absolute;
+  inset: 0;
+  box-sizing: border-box;
+  z-index: 200;
+  background-color: #FAFAFA;
   display: flex;
-  flex-direction: column; /* Stack children (h2, buttons) vertically */
-  justify-content: center; /* Center vertically */
-  align-items: center; /* Center horizontally */
-  padding: 30px; /* Add some padding around the content */
-  gap: 20px; /* Add space BETWEEN flex children (h2 and buttons, and between buttons) */
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  padding: 30px;
+  gap: 20px;
 }
 
 #start-screen h2 {
-  /* Optional styling for the title */
-  font-family: 'Baloo 2', cursive; /* Example using one of your imported fonts */
-  font-size: 2.5rem; /* Adjust size */
-  color: #444; /* Dark grey color */
-  margin: 0; /* Remove default margin if needed, gap handles spacing */
-  /* margin-bottom: 15px; */ /* Use gap on parent instead */
+  font-family: 'Baloo 2', cursive;
+  font-size: 2.5rem;
+  color: #444;
+  margin: 0;
   text-align: center;
 }
 
 .start-button {
-  /* Button Styling */
-  padding: 12px 25px; /* Padding inside button */
-  font-size: 1.1rem; /* Text size */
-  font-family: 'Open Sans', sans-serif; /* Example font */
+  padding: 12px 25px;
+  font-size: 1.1rem;
+  font-family: 'Open Sans', sans-serif;
   color: #333;
-  background-color: #fff; /* White background */
-  border: 1px solid #ccc; /* Light grey border */
-  border-radius: 6px; /* Slightly rounded corners */
-  cursor: pointer; /* Indicate clickable */
-  min-width: 180px; /* Minimum width */
+  background-color: #fff;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  cursor: pointer;
+  min-width: 180px;
   text-align: center;
-  transition: background-color 0.2s ease, box-shadow 0.2s ease; /* Smooth hover */
-  box-shadow: 0 2px 4px rgba(0,0,0,0.05); /* Subtle shadow */
+  transition: background-color 0.2s ease, box-shadow 0.2s ease;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.05);
 }
 
 .start-button:hover {
-  background-color: #f0f0f0; /* Slightly darker background on hover */
-  box-shadow: 0 3px 6px rgba(0,0,0,0.1); /* Slightly larger shadow on hover */
+  background-color: #f0f0f0;
+  box-shadow: 0 3px 6px rgba(0,0,0,0.1);
 }
