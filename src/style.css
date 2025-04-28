@@ -11,18 +11,66 @@ body {
 
 /* === App Container === */
 #app {
-  max-width: 400px; /* Phone-like width */
-  margin: 0 auto; /* Center horizontally */
+  max-width: 400px;
+  margin: 0 auto;
   box-sizing: border-box;
-  position: relative; /* Needed for absolute positioning of start-screen */
-  display: flex; /* Use flexbox to arrange sections */
-  flex-direction: column; /* Stack sections vertically */
-  min-height: 100vh; /* Make app container fill viewport height */
+  position: relative; /* For absolute children like start screen */
+  display: flex;
+  flex-direction: column; /* Stack title, image, button sections */
+  min-height: 100vh;
+  max-height: 100vh; /* Prevent content push */
+  overflow: hidden;   /* Prevent content push */
+  background-color: #fff; /* Optional: base background if needed */
 }
+
+/* === NEW: Title Bar Styling === */
+#title-bar {
+  height: 55px; /* Fixed height */
+  flex-shrink: 0; /* Prevent shrinking */
+  background-color: #ffffff;
+  color: #000000;
+  display: flex;
+  align-items: center;
+  padding: 0 10px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  z-index: 150; /* Above sections, below start screen */
+}
+
+#back-button {
+  background: none;
+  border: none;
+  color: #000000;
+  font-size: 1rem;
+  font-weight: bold;
+  cursor: pointer;
+  padding: 5px 10px;
+  margin-right: 10px;
+  flex-shrink: 0;
+}
+
+#back-button:hover {
+  opacity: 0.7;
+}
+
+#title-text {
+  flex-grow: 1;
+  text-align: center;
+  font-size: 1.2rem;
+  font-weight: bold;
+  font-family: 'Baloo 2', cursive; /* Example font */
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  /* Adjust padding to prevent overlap with potential right-side icons later */
+  padding-right: calc(50px + 10px); /* Approx width of back button + margin */
+}
+/* === End Title Bar Styling === */
+
 
 /* === Top Image/Text Section (75% height) === */
 #image-section {
-  height: 75vh;
+  flex: 1;
+  min-height: 0;
   position: relative;
   overflow: hidden;
   background-color: #222;
@@ -33,21 +81,20 @@ body {
 
 /* Note: This rule might push your falling text down significantly */
 #image-section h1 {
-  margin-top: 400px;
+  margin-top: 0; /* Reset margin */
 }
 
 /* === Bottom Button Section (25% height) - Using Grid === */
 #button-section {
-  height: 25vh;
+  height: 25vh; /* Keep original height */
+  flex-shrink: 0; /* Prevent shrinking */
   background-color: #F5F5F5;
-  position: relative; /* Context for absolute children like potential tooltips etc. */
+  position: relative;
   box-sizing: border-box;
   padding: 10px;
-
-  /* --- Grid Layout --- */
   display: grid;
-  grid-template-columns: 1fr 1fr 1fr; /* Three equal columns */
-  align-items: center; /* Vertically center items in their grid row */
+  grid-template-columns: 1fr 1fr 1fr;
+  align-items: center;
 }
 
 /* === Button Assembly Placement (Inside Grid) === */
@@ -80,26 +127,11 @@ body {
   transition: fill 0.2s ease;
 }
 
-.icon-container svg:hover {
-  fill: #111; /* Example hover effect */
-}
-
-/* === Icon Visibility Rules === */
-/* Hide sound-off icon when sound is ON */
-.icon-container.state-sound-on #icon-sound-off {
-  display: none;
-}
-/* Hide sound-on icon when sound is OFF */
-.icon-container.state-sound-off #icon-sound-on {
-  display: none;
-}
-/* Ensure the correct icon is displayed (block or inline-block as needed) */
-.icon-container.state-sound-on #icon-sound-on {
-  display: block; /* Or inline-block */
-}
-.icon-container.state-sound-off #icon-sound-off {
-  display: block; /* Or inline-block */
-}
+.icon-container svg:hover { fill: #111; }
+.icon-container.state-sound-on #icon-sound-off,
+.icon-container.state-sound-off #icon-sound-on { display: none; }
+.icon-container.state-sound-on #icon-sound-on,
+.icon-container.state-sound-off #icon-sound-off { display: block; }
 
 
 /* === Content Positioning Adjustments === */
@@ -282,3 +314,30 @@ body.transitions-ready #inner-button {
   background-color: #f0f0f0;
   box-shadow: 0 3px 6px rgba(0,0,0,0.1);
 }
+
+/* === State Visibility Control === */
+
+/* Default State: When body has class "state-start" */
+body.state-start #title-bar, /* <<< Hide Title Bar */
+body.state-start #image-section,
+body.state-start #button-section {
+  display: none;
+}
+body.state-start #start-screen {
+  display: flex;
+}
+
+/* Main App State: When body has class "state-main" */
+body.state-main #start-screen {
+  display: none;
+}
+body.state-main #title-bar { /* <<< Show Title Bar */
+  display: flex; /* Use flex as defined in its base style */
+}
+body.state-main #image-section {
+  display: block; /* Restore display */
+}
+body.state-main #button-section {
+  display: grid; /* Restore display (grid) */
+}
+/* === End State Visibility Control === */

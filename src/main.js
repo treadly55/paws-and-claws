@@ -35,8 +35,9 @@ const SHRINK_THRESHOLD_LENGTH = 5;
 const imageSectionElement = document.querySelector('#image-section');
 const animalNameDisplayElement = document.querySelector('#animal-name-display');
 const innerButton = document.querySelector('#inner-button');
-// --- >>> NEW: Select Sound Icon Container <<< ---
 const soundIconContainer = document.querySelector('.icon-container');
+const backButton = document.querySelector('#back-button');
+
 
 // --- Early Checks ---
 if (!imageSectionElement) console.error("CRITICAL ERROR: #image-section not found!");
@@ -44,6 +45,7 @@ if (!animalNameDisplayElement) console.error("CRITICAL ERROR: #animal-name-displ
 if (!innerButton) console.error("CRITICAL ERROR: #inner-button not found!");
 if (contentData.length === 0) console.error("CRITICAL ERROR: contentData array is empty!");
 if (!soundIconContainer) console.warn("WARN: Sound icon container '.icon-container' not found.");
+if (!backButton) console.warn("WARN: Back button '#back-button' not found.");
 
 // --- Helper Functions ---
 
@@ -120,6 +122,29 @@ function checkIfReady() {
         isWordAnimationComplete = false; // Reset word flag for next cycle
     }
 }
+
+// --- >>> NEW: Function to Go Back to Start Screen <<< ---
+function goToStartScreen() {
+    console.log("[STATE] Transitioning back to Start Screen state...");
+
+    // 1. Switch Body Class
+    document.body.classList.remove('state-main');
+    document.body.classList.add('state-start');
+    console.log("[STATE] Body class set to: state-start");
+
+    // --- >>> Reset currentIndex <<< ---
+    currentIndex = 0;
+    console.log("[STATE] currentIndex reset to 0.");
+    // --- End Reset ---
+
+    // 2. Clear Timers (Optional, removed as requested for now)
+    // clearTimeout(imageReadyTimeoutId);
+    // clearTimeout(wordReadyTimeoutId);
+    // clearTimeout(enableButtonTimeoutId);
+    // isTransitioning = false; // Setting this might be needed later
+}
+// --- End goToStartScreen Function ---
+
 
 /**
  * Initializes the main application view state. (Step 5)
@@ -228,6 +253,12 @@ if (startButtons.length > 0) {
 } else {
     console.warn("No start buttons found with class '.start-button'.");
 }
+
+// --- >>> NEW: Back Button Listener <<< ---
+if (backButton) {
+    backButton.addEventListener('click', goToStartScreen);
+    console.log("[SETUP] Back button listener attached.");
+} // Warning already logged if not found
 
 // --- >>> NEW: Sound Icon Listener <<< ---
 if (soundIconContainer) {
