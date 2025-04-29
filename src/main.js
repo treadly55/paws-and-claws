@@ -211,12 +211,6 @@ function goToStartScreen() {
     currentIndex = 0;
     console.log("[STATE] currentIndex reset to 0.");
     // --- End Reset ---
-
-    // 2. Clear Timers (Optional, removed as requested for now)
-    // clearTimeout(imageReadyTimeoutId);
-    // clearTimeout(wordReadyTimeoutId);
-    // clearTimeout(enableButtonTimeoutId);
-    // isTransitioning = false; // Setting this might be needed later
 }
 // --- End goToStartScreen Function ---
 
@@ -261,18 +255,7 @@ function initializeMainApp() {
                 isWordAnimationComplete = true;
                 checkIfReady(); // Simplified checkIfReady is called
             }, totalWordAnimationTimeMs);
-        } else { console.error('Cannot display initial word: #animal-name-display not found.'); }
-
-             // --- >>> Schedule Initial Sound Playback <<< ---
-            const initialSoundUrl = initialItem.sound;
-            if (initialSoundUrl) {
-                console.log(`[SOUND] Scheduling initial sound ${initialSoundUrl} in 1000ms`);
-                setTimeout(() => {
-                    playSound(initialSoundUrl); // Play the sound for the first item after 1s
-                }, 1000);
-            } else {
-                console.log(`[SOUND] No initial sound associated with item index ${currentIndex}`);
-            }
+        } else { console.error('Cannot display initial word: #animal-name-display not found.'); }                
         } else { console.error("Cannot initialize: contentData is empty."); }
 }
 
@@ -401,100 +384,52 @@ if (soundIconContainer) {
 // Main Button (#inner-button) Interaction Logic (Step 6)
 if (innerButton && imageSectionElement && animalNameDisplayElement && contentData.length > 0) {
 
+    // --- REPLACED handlePress function body ---
     const handlePress = (event) => {
-        if (event.type === 'touchstart') event.preventDefault();
-        // Guard clause (unchanged)
-        if (isTransitioning) {
-            console.log("[INFO] Ignored press: Transition already in progress.");
-            return;
+        // Keep touchstart prevention
+        if (event.type === 'touchstart') {
+            event.preventDefault();
         }
-        // Set busy flag (unchanged)
-        isTransitioning = true;
-        console.log("[DEBUG] Starting transition, isTransitioning = true");
 
-        // Disable button, add class (unchanged)
-        innerButton.disabled = true;
-        console.log(`[DEBUG] Button disabled at: ${performance.now()}`);
-        innerButton.classList.add('button-depressed');
-
-        // Reset Readiness Flags
-        isContentReady = false;
-        // isImageTransitionComplete = false; // <<< REMOVED
-        isWordAnimationComplete = false;   // Keep
-        console.log("[DEBUG] Readiness flags reset.");
-
-        // Clear previous timers
-        // clearTimeout(imageReadyTimeoutId); // <<< REMOVED
-        clearTimeout(wordReadyTimeoutId);   // Keep
-        clearTimeout(enableButtonTimeoutId); // Keep
-
-        // Update Content (unchanged)
-        currentIndex = (currentIndex + 1) % contentData.length;
-        const newItem = contentData[currentIndex];
-        const newImageUrl = newItem.image;
-        const newWord = newItem.name;
-        const newSoundUrl = newItem.sound
-
-        // Update Background (Set directly, no timer)
-        imageSectionElement.style.backgroundImage = `url(${newImageUrl})`;
-        console.log(`Background change triggered for: ${newImageUrl}`);
-
-        // Update Word & Start Word Timer 
-        displayFallingWord(newWord, animalNameDisplayElement);
-        console.log(`Word change triggered for: ${newWord}`);
-
-        // --- >>> Schedule Sound Playback (NEW) <<< ---
-        if (newSoundUrl) {
-            console.log(`[SOUND] Scheduling sound ${newSoundUrl} in 1000ms`);
-            // Use setTimeout to delay the playback call
-            setTimeout(() => {
-                playSound(newSoundUrl); // Call our helper function after delay
-            }, 1000); // 1000ms = 1 second delay
-        } else {
-            // Log if no sound is associated with this item
-            console.log(`[SOUND] No sound associated with item index ${currentIndex} (${newWord})`);
+        // Apply visual depressed effect
+        if (innerButton) { // Safety check
+            innerButton.classList.add('button-depressed');
         }
-        // --- End Schedule Sound Playback ---
 
-        const wordLength = newWord.length;
-        const baseDelayMs = 1000;
-        const incrementDelayMs = 100;
-        const keyframeDurationMs = 1000;
-        const totalWordAnimationTimeMs = baseDelayMs + (wordLength > 0 ? (wordLength - 1) * incrementDelayMs : 0) + keyframeDurationMs;
-        console.log(`[DEBUG] Word: "${newWord}", Length: ${wordLength}, Total Anim Time: ${totalWordAnimationTimeMs}ms`);
+        // Trigger the existing word tap logic
+        // (plays current sound, checks mute, handles word tap replay prevention)
+        console.log("[SOUND] Main button pressed, triggering word tap sound logic.");
+        handleWordTap(); // Reuse the function for tapping the word area
 
-        // Set timeout for word animation completion AND button re-enabling //
-        wordReadyTimeoutId = setTimeout(() => {
-            console.log("[DEBUG] Word animation finished.");
-            isWordAnimationComplete = true;
-            innerButton.disabled = false; // Re-enable button
-            console.log(`[DEBUG] Button re-enabled at: ${performance.now()}`);
-            checkIfReady(); // Call simplified checkIfReady
-        }, totalWordAnimationTimeMs);
+    }; // End MODIFIED handlePress
 
-        enableButtonTimeoutId = wordReadyTimeoutId;
-
-    }; // End handlePress
-
+    // --- handleRelease unchanged ---
     const handleRelease = (event) => {
-        innerButton.classList.remove('button-depressed');
+        if (innerButton) { // Safety check
+            innerButton.classList.remove('button-depressed');
+        }
     };
 
-    // Attach Main Button Listeners (unchanged)
+    // --- Attach Main Button Listeners (Unchanged) ---
     innerButton.addEventListener('mousedown', handlePress);
     innerButton.addEventListener('touchstart', handlePress);
-    // ... rest of listeners
+    innerButton.addEventListener('mouseup', handleRelease);
+    innerButton.addEventListener('touchend', handleRelease);
+    innerButton.addEventListener('mouseleave', handleRelease);
+    innerButton.addEventListener('touchcancel', handleRelease);
 
 } else {
-    // Error logging & initial disable (unchanged)
+    // Error logging & initial disable (Unchanged)
     console.error("Main Button Interaction Setup Failed:");
-    // ... detailed error logging ...
-    if(innerButton) innerButton.disabled = true;
+    if (!innerButton) console.error("- #inner-button missing.");
+    if (!imageSectionElement) console.error("- #image-section missing.");
+    if (!animalNameDisplayElement) console.error("- #animal-name-display missing.");
+    if (contentData.length === 0) console.error("- contentData array is empty.");
+    if (innerButton) innerButton.disabled = true;
 }
+// --- End Button Interaction ---
 
-
-
-// --- Enable Transitions (Unchanged) ---
+// --- Enable Transitions ---
 setTimeout(() => {
     document.body.classList.add('transitions-ready');
 }, 0);

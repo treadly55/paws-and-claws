@@ -271,7 +271,7 @@ body.state-main #button-section {
 /* === Transitions === */
 body.transitions-ready #image-section {
   /* Increased fade duration from user input */
-  transition: background-image 2.6s ease-in-out;
+  transition: background-image 0.6s ease-in-out;
 }
 
 body.transitions-ready #inner-button {
@@ -298,18 +298,20 @@ body.transitions-ready #inner-button {
   /* Align centers the non-absolute items horizontally */
   align-items: center;
   gap: 20px; /* Space BETWEEN the square buttons */
+  margin-top: 40px;
 }
 
 #start-screen h2 {
   font-family: 'Baloo 2', cursive;
-  font-size: 2.5rem;
-  color: #444;
+  font-size: 4.8rem;
+  line-height: 3.5rem;
+  color: #2b69dd;
   margin: 0; /* Reset margin */
   text-align: center; /* Center text within its own box */
   /* Absolute Positioning */
   position: absolute;
   width: 90%; /* Prevent text from hitting edges */
-  top: 8%; /* Position roughly 1/6th down from the top. Adjust % as needed. */
+  top: 5%; /* Position roughly 1/6th down from the top. Adjust % as needed. */
   left: 50%;
   transform: translate(-50%, -50%); /* Center horizontally and vertically around the 'top' point */
 }
@@ -344,6 +346,16 @@ body.transitions-ready #inner-button {
 }
 
 
+#start-level-1 {
+  background-image: url('../images/farm.png');
+}
+#start-level-2 {
+  background-image: url('../images/zoo.png');
+}
+#start-level-3 {
+  background-image: url('../images/ocean.png');
+}
+
 /* --- >>> NEW: Square Button Specific Styles <<< --- */
 .square-button {
   /* Override dimensions */
@@ -363,6 +375,7 @@ body.transitions-ready #inner-button {
   display: flex;
   align-items: center;
   justify-content: center;
+  margin-bottom: 20px;
 }
 
 /* === State Visibility Control === */
