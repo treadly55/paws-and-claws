@@ -68,7 +68,7 @@ if (!soundIconContainer) console.warn("WARN: Sound icon container '.icon-contain
 if (!backButton) console.warn("WARN: Back button '#back-button' not found.");
 
 // --- Helper Functions ---
-
+// 
 // Initiates download for all images in the provided data array. //
 function preloadAllImages(dataArray) {
     if (!dataArray || dataArray.length === 0) {
@@ -137,6 +137,110 @@ function checkIfReady() {
     }
 }
 
+//--- >>> Function to Go Back to Start Screen <<< ---//
+function goToStartScreen() {
+    console.log("[STATE] Transitioning back to Start Screen state...");
+
+    // 1. Switch Body Class
+    document.body.classList.remove('state-main');
+    document.body.classList.add('state-start');
+    console.log("[STATE] Body class set to: state-start");
+
+    // --- >>> Reset currentIndex <<< ---
+    currentIndex = 0;
+    console.log("[STATE] currentIndex reset to 0.");
+    // --- End Reset ---
+}
+
+// --- >>> NEW: Navigation Functions <<< ---
+function goToNextItem() {
+    if (isTransitioning) { // Double check busy state before navigating
+       console.log("[NAV] Ignored goToNextItem: Transition in progress.");
+       return;
+    }
+    console.log("[NAV] Going to next item...");
+    const nextIndex = (currentIndex + 1) % contentData.length;
+    showItemAtIndex(nextIndex);
+}
+
+function goToPreviousItem() {
+    if (isTransitioning) { // Double check busy state before navigating
+       console.log("[NAV] Ignored goToPreviousItem: Transition in progress.");
+       return;
+    }
+    console.log("[NAV] Going to previous item...");
+    // Ensure wrap-around works correctly for negative numbers
+    const prevIndex = (currentIndex - 1 + contentData.length) % contentData.length;
+    showItemAtIndex(prevIndex);
+}
+// END Helper functions 
+
+// --- >>> NEW: Function to Display Content at a Specific Index <<< ---
+/**
+ * Updates the UI to show the item at the given index and manages transitions.
+ * @param {number} newIndex - The index of the item in contentData to display.
+ */
+function showItemAtIndex(newIndex) {
+    // Basic index validation (optional but good)
+    if (newIndex < 0 || newIndex >= contentData.length) {
+        console.error(`[DISPLAY] Invalid index requested: ${newIndex}`);
+        isTransitioning = false; // Ensure we aren't stuck if index was bad
+        return;
+    }
+    console.log(`[DISPLAY] Showing item at index: ${newIndex}`);
+    isTransitioning = true; // Mark app as busy
+    isContentReady = false; // Content is about to change
+    isWordAnimationComplete = false; // Reset word flag
+
+    // Clear previous timers related to word animation/readiness
+    clearTimeout(wordReadyTimeoutId);
+    clearTimeout(enableButtonTimeoutId); // Button enable tied to word timer
+
+    // Update the global index
+    currentIndex = newIndex;
+    const newItem = contentData[currentIndex];
+
+    // Update Background
+    if (imageSectionElement && newItem.image) {
+        imageSectionElement.style.backgroundImage = `url(${newItem.image})`;
+        console.log(`Background updated to: ${newItem.image}`);
+    } else if (!imageSectionElement) {
+        console.error('Cannot update background: #image-section missing.');
+    }
+
+    // Update Word Display & Start Animation Timer
+    if (animalNameDisplayElement && newItem.name) {
+        displayFallingWord(newItem.name, animalNameDisplayElement);
+        console.log(`Word display updated to: ${newItem.name}`);
+
+        // Calculate word animation time
+        const wordLength = newItem.name.length;
+        const baseDelayMs = 1000;
+        const incrementDelayMs = 100;
+        const keyframeDurationMs = 1000;
+        const totalWordAnimationTimeMs = baseDelayMs + (wordLength > 0 ? (wordLength - 1) * incrementDelayMs : 0) + keyframeDurationMs;
+        console.log(`[DEBUG] Word Anim Time for index ${currentIndex}: ${totalWordAnimationTimeMs}ms`);
+        // Set timeout for word animation completion
+        // NOTE: Button re-enabling is removed as button doesn't trigger this anymore
+        wordReadyTimeoutId = setTimeout(() => {
+            console.log(`[DEBUG] Word animation finished for index ${currentIndex}.`);
+            isWordAnimationComplete = true;
+            // innerButton.disabled = false; // Removed - button enable is separate now
+            checkIfReady(); // Checks readiness and sets isTransitioning = false
+        }, totalWordAnimationTimeMs);
+        // enableButtonTimeoutId = wordReadyTimeoutId; // Removed
+
+    } else if (!animalNameDisplayElement) {
+        console.error('Cannot update word display: #animal-name-display missing.');
+        // If word display fails, we should probably still clear the transitioning flag after a delay
+        isTransitioning = false;
+    } else {
+        // No name? Still need to clear transitioning state
+        console.warn(`No name found for item at index ${currentIndex}.`);
+        isTransitioning = false; // Or maybe set a short fallback timer? For now, clear directly.
+    }
+}
+
 // --- >>> NEW: Handler for Word Area Tap <<< ---
 /**
  * Handles clicks/taps on the animal name display area to replay the current sound.
@@ -195,73 +299,25 @@ function handleWordTap(event) {
 }
 // --- End handleWordTap Function ---
 
-
-
-
-//--- >>> Function to Go Back to Start Screen <<< ---//
-function goToStartScreen() {
-    console.log("[STATE] Transitioning back to Start Screen state...");
-
-    // 1. Switch Body Class
-    document.body.classList.remove('state-main');
-    document.body.classList.add('state-start');
-    console.log("[STATE] Body class set to: state-start");
-
-    // --- >>> Reset currentIndex <<< ---
-    currentIndex = 0;
-    console.log("[STATE] currentIndex reset to 0.");
-    // --- End Reset ---
-}
-// --- End goToStartScreen Function ---
-
-
-
  //Initializes the main application view state.//
 function initializeMainApp() {
     console.log("[SETUP] Initializing Main App view...");
-    isTransitioning = false;
-    isContentReady = false;
+    // isTransitioning = false;
+    // isContentReady = false;
 
-    // --- >>> NEW: Set Initial Sound Icon State <<< ---
+    // Set Initial Sound Icon State
     if (soundIconContainer) {
         soundIconContainer.classList.toggle('state-sound-on', isSoundOn);
         soundIconContainer.classList.toggle('state-sound-off', !isSoundOn);
         console.log(`[SETUP] Initial sound icon state set: ${isSoundOn ? 'ON' : 'OFF'}`);
     }
-    // --- End NEW ---
-
+    
     if (contentData.length > 0) {
-        const initialItem = contentData[currentIndex];
-        // Initialize background
-        if (imageSectionElement) {
-            imageSectionElement.style.backgroundImage = `url(${initialItem.image})`;
-            console.log(`Initial background set to: ${initialItem.image}`);
-        } else { console.error('Cannot set initial background: #image-section not found.'); }
-
-        if (animalNameDisplayElement) {
-            displayFallingWord(initialItem.name, animalNameDisplayElement);
-            console.log(`Initial word displayed: ${initialItem.name}`);
-            // Calculate word animation time (unchanged)
-            const wordLength = initialItem.name.length;
-            const baseDelayMs = 1000;
-            const incrementDelayMs = 100;
-            const keyframeDurationMs = 1000;
-            const totalWordAnimationTimeMs = baseDelayMs + (wordLength > 0 ? (wordLength - 1) * incrementDelayMs : 0) + keyframeDurationMs;
-            // Start word animation timer (unchanged)
-            isWordAnimationComplete = false;
-            clearTimeout(wordReadyTimeoutId);
-            wordReadyTimeoutId = setTimeout(() => {
-                console.log("[DEBUG] Initial Word animation finished.");
-                isWordAnimationComplete = true;
-                checkIfReady(); // Simplified checkIfReady is called
-            }, totalWordAnimationTimeMs);
-        } else { console.error('Cannot display initial word: #animal-name-display not found.'); }                
-        } else { console.error("Cannot initialize: contentData is empty."); }
+        showItemAtIndex(currentIndex); // currentIndex should be 0 here       
+    } else { console.error("Cannot initialize: contentData is empty."); }
 }
 
-/**
- * Transitions the view from start screen to main app.
- */
+// Transitions the view from start screen to main app
 function goToMainApp() {
     console.log("[STATE] Transitioning to Main App state...");
     document.body.classList.remove('state-start');
@@ -269,7 +325,6 @@ function goToMainApp() {
     console.log("[STATE] Body class set to: state-main");
     initializeMainApp();
 }
-
 // --- >>> Sound Toggle Function <<< ---
 function toggleSoundState() {
     if (!soundIconContainer) return; // Safety check
@@ -280,14 +335,6 @@ function toggleSoundState() {
     // Update classes efficiently
     soundIconContainer.classList.toggle('state-sound-on', isSoundOn);
     soundIconContainer.classList.toggle('state-sound-off', !isSoundOn);
-
-    // TODO: Add actual audio mute/unmute logic here later
-    // Example:
-    // if (isSoundOn) {
-    //   unmuteAllAudio();
-    // } else {
-    //   muteAllAudio();
-    // }
 }
 // --- End Sound Toggle Function ---
 
@@ -296,7 +343,6 @@ function toggleSoundState() {
  * @param {string} soundUrl - The path to the audio file.
  * @returns {HTMLAudioElement | null} - The created Audio object or null if not played.
  */
-
 
 // --- >>> Function to Play Sound <<< ---
 function playSound(soundUrl) {
