@@ -39,6 +39,15 @@ let isContentReady = false;
 let isTransitioning = false;
 let isSoundOn = true; // Assume sound starts ON
 let currentWordTapAudio = null;
+// --- Touch State Variables 
+let touchStartX = 0;
+let touchStartY = 0;
+let touchStartTime = 0;
+// --- Swipe Detection Constants 
+const MIN_SWIPE_DISTANCE = 50; // Minimum pixels horizontally for a swipe
+const MAX_VERTICAL_DISTANCE = 75; // Maximum pixels vertically allowed during horizontal swipe
+const MAX_SWIPE_TIME = 500; // Maximum time in ms for a swipe gesture
+
 
 // --- Timeout IDs ---
 let enableButtonTimeoutId = null;       // For button re-enable (tied to word anim)
@@ -68,7 +77,7 @@ if (!soundIconContainer) console.warn("WARN: Sound icon container '.icon-contain
 if (!backButton) console.warn("WARN: Back button '#back-button' not found.");
 
 // --- Helper Functions ---
-// 
+//
 // Initiates download for all images in the provided data array. //
 function preloadAllImages(dataArray) {
     if (!dataArray || dataArray.length === 0) {
@@ -85,9 +94,7 @@ function preloadAllImages(dataArray) {
         } else { console.warn(`[PRELOAD] Invalid image path at index ${index}.`); }
     });
 }
-
-
-//Calculates font size based on word length.//
+// Calculates font size based on word length 
 function calculateFontSize(wordString) {
     const wordLength = wordString.length;
     let calculatedSizeRem;
@@ -102,9 +109,7 @@ function calculateFontSize(wordString) {
     console.log(`[DEBUG] Word: "${wordString}" (${wordLength} chars), Font Size: ${calculatedSizeRem.toFixed(2)}rem`);
     return calculatedSizeRem;
 }
-
-
- //Displays the falling word animation.//
+ // Displays the falling word animation 
 function displayFallingWord(wordString, containerElement) {
     const existingH1 = containerElement.querySelector('.falling-word');
     if (existingH1) existingH1.remove();
@@ -122,8 +127,7 @@ function displayFallingWord(wordString, containerElement) {
     });
     containerElement.appendChild(newH1);
 }
-
-//Checks if content cycle is complete (now only based on word animation)//
+// Checks if content cycle is complete (now only based on word animation) 
 function checkIfReady() {
     // --- >>> MODIFIED: Only check word completion <<< ---
     console.log(`[DEBUG] Checking readiness: WordComplete=${isWordAnimationComplete}`);
@@ -136,8 +140,7 @@ function checkIfReady() {
         isWordAnimationComplete = false; // Reset word flag for next cycle
     }
 }
-
-//--- >>> Function to Go Back to Start Screen <<< ---//
+// Go Back to Start Screen 
 function goToStartScreen() {
     console.log("[STATE] Transitioning back to Start Screen state...");
 
@@ -152,7 +155,7 @@ function goToStartScreen() {
     // --- End Reset ---
 }
 
-// --- >>> NEW: Navigation Functions <<< ---
+// --- Navigation Functions --- //
 function goToNextItem() {
     if (isTransitioning) { // Double check busy state before navigating
        console.log("[NAV] Ignored goToNextItem: Transition in progress.");
@@ -173,6 +176,7 @@ function goToPreviousItem() {
     const prevIndex = (currentIndex - 1 + contentData.length) % contentData.length;
     showItemAtIndex(prevIndex);
 }
+
 // END Helper functions 
 
 // --- >>> NEW: Function to Display Content at a Specific Index <<< ---
@@ -396,14 +400,12 @@ console.log("[STATE] Initial state set to: state-start");
 
 // --- Event Listeners ---
 
-// --- >>> Word Area Tap Listener <<< ---
+//  Word Area Tap Listener 
 if (animalNameDisplayElement) {
     animalNameDisplayElement.addEventListener('click', handleWordTap);
     console.log("[SETUP] Word tap listener attached to #animal-name-display.");
-} // Error if missing already logged earlier
-
-
-// Start Button Listeners
+} 
+// Start Button Listener
 const startButtons = document.querySelectorAll('.start-button');
 if (startButtons.length > 0) {
     console.log(`[SETUP] Found ${startButtons.length} start button(s). Attaching listeners...`);
@@ -413,24 +415,106 @@ if (startButtons.length > 0) {
 } else {
     console.warn("No start buttons found with class '.start-button'.");
 }
-
-// --- >>> NEW: Back Button Listener <<< ---
+// Back Button Listener
 if (backButton) {
     backButton.addEventListener('click', goToStartScreen);
     console.log("[SETUP] Back button listener attached.");
-} // Warning already logged if not found
-
-// --- >>> NEW: Sound Icon Listener <<< ---
+} 
+// Sound Icon Listener 
 if (soundIconContainer) {
     soundIconContainer.addEventListener('click', toggleSoundState);
     console.log("[SETUP] Sound toggle listener attached.");
-} // Warning if not found already logged earlier
+} 
 
 
-// Main Button (#inner-button) Interaction Logic (Step 6)
+// --- >>> NEW: Swipe Navigation Listeners on Image Section <<< ---
+if (imageSectionElement) {
+    // --- Touch Start ---
+    imageSectionElement.addEventListener('touchstart', (event) => {
+        // Check if we are already transitioning, if so, maybe ignore start? Usually okay to record.
+        // if (isTransitioning) return;
+
+        // Get the first touch point
+        const touch = event.touches[0];
+        touchStartX = touch.clientX;
+        touchStartY = touch.clientY;
+        touchStartTime = Date.now(); // Record time
+        // console.log(`[SWIPE] Start: X=${touchStartX}, Y=${touchStartY}, Time=${touchStartTime}`);
+    }, { passive: true }); // Use passive: true if we don't need preventDefault here
+
+    // --- Touch End ---
+    imageSectionElement.addEventListener('touchend', (event) => {
+        // Ignore if already transitioning from a previous action
+        if (isTransitioning) {
+            console.log("[SWIPE] Ignored touchend: Transition in progress.");
+            return;
+        }
+
+        // Check if touch start data is valid (could happen if page reloaded mid-touch)
+        if (touchStartX === 0 || touchStartTime === 0) {
+            return;
+        }
+
+        // Get the touch point where finger was lifted
+        const touch = event.changedTouches[0];
+        const touchEndX = touch.clientX;
+        const touchEndY = touch.clientY;
+        const touchEndTime = Date.now();
+
+        // Calculate differences
+        const deltaX = touchEndX - touchStartX;
+        const deltaY = touchEndY - touchStartY;
+        const deltaTime = touchEndTime - touchStartTime;
+
+        // console.log(`[SWIPE] End: dX=${deltaX}, dY=${deltaY}, dT=${deltaTime}`);
+
+        // --- Swipe Detection Logic ---
+        // Check if it meets criteria: significant horizontal move, limited vertical move, quick enough
+        if (Math.abs(deltaX) >= MIN_SWIPE_DISTANCE &&
+            Math.abs(deltaY) <= MAX_VERTICAL_DISTANCE &&
+            deltaTime <= MAX_SWIPE_TIME)
+        {
+            console.log("[SWIPE] Detected!");
+            // Horizontal Swipe Detected! Determine direction.
+            if (deltaX < 0) {
+                // Swiped Left (Next)
+                console.log("[SWIPE] Direction: Left (Next)");
+                goToNextItem(); // Call the function to show next item
+            } else {
+                // Swiped Right (Previous)
+                console.log("[SWIPE] Direction: Right (Previous)");
+                goToPreviousItem(); // Call the function to show previous item
+            }
+            // Note: goToNext/PreviousItem calls showItemAtIndex which sets isTransitioning = true
+        } else {
+            // console.log("[SWIPE] Movement did not meet swipe criteria.");
+        }
+
+        // Reset start variables for the next touch interaction
+        touchStartX = 0;
+        touchStartY = 0;
+        touchStartTime = 0;
+
+    }, { passive: true }); // Use passive: true as we aren't preventing default scroll here
+
+    // --- Touch Cancel ---
+    // Optional: Handle cases where touch is interrupted (e.g., browser gesture)
+    imageSectionElement.addEventListener('touchcancel', (event) => {
+        console.log("[SWIPE] Touch Cancelled");
+        // Reset start variables
+        touchStartX = 0;
+        touchStartY = 0;
+        touchStartTime = 0;
+    }, { passive: true });
+
+    console.log("[SETUP] Swipe listeners attached to #image-section.");
+
+} 
+
+// --- Main Button interaction logic --- //
 if (innerButton && imageSectionElement && animalNameDisplayElement && contentData.length > 0) {
 
-    // --- REPLACED handlePress function body ---
+    // --- handlePress function body ---
     const handlePress = (event) => {
         // Keep touchstart prevention
         if (event.type === 'touchstart') {
