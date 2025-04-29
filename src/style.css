@@ -4,7 +4,7 @@
 /* === Basic Reset / Body Styling === */
 body {
   margin: 0;
-  overflow: hidden; /* Prevent scrollbars */
+  overflow: auto;
   font-family: sans-serif;
   background-color: #E0E0E0; /* Outer background */
 }
@@ -14,13 +14,11 @@ body {
   max-width: 400px;
   margin: 0 auto;
   box-sizing: border-box;
-  position: relative; /* For absolute children like start screen */
+  position: relative; /* For absolute children - start screen */
   display: flex;
-  flex-direction: column; /* Stack title, image, button sections */
+  flex-direction: column; 
   min-height: 100vh;
-  max-height: 100vh; /* Prevent content push */
-  overflow: hidden;   /* Prevent content push */
-  background-color: #fff; /* Optional: base background if needed */
+  background-color: #fff; 
 }
 
 /* === Title Bar Styling (Using Grid) === */
