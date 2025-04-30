@@ -431,45 +431,55 @@ if (soundIconContainer) {
 if (imageSectionElement) {
     // --- Touch Start ---
     imageSectionElement.addEventListener('touchstart', (event) => {
-        // Check if we are already transitioning, if so, maybe ignore start? Usually okay to record.
-        // if (isTransitioning) return;
-
-        // Get the first touch point
         const touch = event.touches[0];
         touchStartX = touch.clientX;
         touchStartY = touch.clientY;
-        touchStartTime = Date.now(); // Record time
-        // console.log(`[SWIPE] Start: X=${touchStartX}, Y=${touchStartY}, Time=${touchStartTime}`);
-    }, { passive: true }); // Use passive: true if we don't need preventDefault here
+        touchStartTime = Date.now(); 
+    }, { passive: true }); 
+
+    // --- >>> NEW: Touch Move Listener <<< ---
+    imageSectionElement.addEventListener('touchmove', (event) => {
+        // If touch didn't start properly, exit
+        if (touchStartX === 0 || touchStartY === 0) {
+            return;
+        }
+        // Get current touch position
+        const touch = event.touches[0];
+        const touchMoveX = touch.clientX;
+        const touchMoveY = touch.clientY;
+
+        // Calculate movement delta
+        const deltaX = touchMoveX - touchStartX;
+        const deltaY = touchMoveY - touchStartY;
+
+        // --- Prevent Vertical Scroll/Bounce During Horizontal Swipe ---
+        // If horizontal movement is greater than vertical movement...
+        if (Math.abs(deltaX) > Math.abs(deltaY)) {
+            // ...this is likely a horizontal swipe, prevent default vertical scroll/bounce action
+            event.preventDefault();
+        }
+        // Otherwise (vertical move > horizontal), allow default browser scroll
+
+    }, { passive: false });
 
     // --- Touch End ---
     imageSectionElement.addEventListener('touchend', (event) => {
-        // Ignore if already transitioning from a previous action
         if (isTransitioning) {
             console.log("[SWIPE] Ignored touchend: Transition in progress.");
             return;
         }
-
-        // Check if touch start data is valid (could happen if page reloaded mid-touch)
         if (touchStartX === 0 || touchStartTime === 0) {
             return;
         }
-
         // Get the touch point where finger was lifted
         const touch = event.changedTouches[0];
         const touchEndX = touch.clientX;
         const touchEndY = touch.clientY;
         const touchEndTime = Date.now();
-
-        // Calculate differences
         const deltaX = touchEndX - touchStartX;
         const deltaY = touchEndY - touchStartY;
         const deltaTime = touchEndTime - touchStartTime;
 
-        // console.log(`[SWIPE] End: dX=${deltaX}, dY=${deltaY}, dT=${deltaTime}`);
-
-        // --- Swipe Detection Logic ---
-        // Check if it meets criteria: significant horizontal move, limited vertical move, quick enough
         if (Math.abs(deltaX) >= MIN_SWIPE_DISTANCE &&
             Math.abs(deltaY) <= MAX_VERTICAL_DISTANCE &&
             deltaTime <= MAX_SWIPE_TIME)
