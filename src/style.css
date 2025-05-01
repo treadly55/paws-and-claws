@@ -95,7 +95,7 @@ body {
 
 /* === Bottom Button Section (25% height) - Using Grid === */
 #button-section {
-  height: 25vh; /* Keep original height */
+  min-height: 25vh; /* Keep original height */
   flex-shrink: 0; /* Prevent shrinking */
   background-color: #F5F5F5;
   position: relative;
@@ -121,9 +121,6 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
-  /* Add padding if needed to increase click area */
-  padding-left: 40px;
-  padding-top: 10px;
 }
 
 /* === Basic SVG Styling (NEW) === */
@@ -133,7 +130,6 @@ body {
   height: 60px; /* Adjusted size slightly */
   fill: #666; /* Slightly darker grey */
   cursor: pointer;
-  transition: fill 0.2s ease;
 }
 
 .icon-container svg:hover { fill: #111; }
@@ -404,3 +400,92 @@ body.state-main #button-section {
   display: grid; /* Restore display (grid) */
 }
 /* === End State Visibility Control === */
+
+
+/**
+ * Keyframes for the text bounce animation on button press.
+ */
+
+@keyframes textBounce {
+  0%, 100%, 20%, 53%, 80% {
+    transition-timing-function: cubic-bezier(0.215, 0.610, 0.355, 1.000);
+    transform: translate3d(0,0,0); /* Use translate3d for potential hardware acceleration */
+  }
+  40%, 43% {
+    transition-timing-function: cubic-bezier(0.755, 0.050, 0.855, 0.060);
+    transform: translate3d(0, -20px, 0); /* Adjust -20px bounce height */
+  }
+  70% {
+    transition-timing-function: cubic-bezier(0.755, 0.050, 0.855, 0.060);
+    transform: translate3d(0, -10px, 0); /* Secondary smaller bounce */
+  }
+  90% {
+    transform: translate3d(0, -4px, 0);
+  }
+}
+
+/**
+ * Class to apply the text bounce animation to the H1.
+ */
+ #animal-name-display h1.apply-text-bounce {
+  /* Apply the keyframes animation */
+  animation-name: textBounce;
+  animation-duration: 0.8s; /* Adjust duration as needed */
+  animation-fill-mode: both; /* Keeps styles from keyframes before/after */
+  animation-iteration-count: 1; /* Play only once per class application */
+}
+
+.left-icon-stack {
+  grid-column: 1 / 2; /* Place in the first column */
+  justify-self: center; /* Center the stack horizontally in the grid cell */
+  align-self: center; /* Center the stack vertically in the grid cell */
+
+  display: flex; /* Use flexbox to arrange the icons */
+  flex-direction: column; /* Stack icons vertically */
+  align-items: center; /* Center icons horizontally within the stack */
+  gap: 15px; /* Space between the two icons vertically */
+  padding: 10px; /* Padding around the icon stack within the column */
+  padding-right: 30px;
+}
+
+.icon-button {
+  /* Keep existing styles like width, height, background, border, etc. */
+  width: 80px;
+  height: 80px;
+  background-color: #ffffff;
+  border: 1px solid #ddd;
+  border-radius: 10px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  opacity: 0.6; /* Dim unselected icons */
+  cursor: pointer;
+  transition: background-color 0.2s ease, box-shadow 0.2s ease, opacity 0.2s ease; /* Add opacity */
+}
+
+.icon-button.selected {
+  opacity: 1.0; /* Fully opaque when selected */
+  /* Optional stronger visual cue - uncomment or modify if desired */
+  /* box-shadow: 0 0 5px rgba(45, 74, 222, 0.7); */
+  /* cursor: default; */ /* Optional: Indicate it's already selected */
+}
+
+/* Ensure the image stays within bounds (optional, as width/height set in HTML) */
+.icon-button img {
+  display: block; /* Remove extra space below image */
+  max-width: 100%;
+  height: auto; /* Maintain aspect ratio if needed, but HTML width/height should dominate */
+}
+
+@media only screen and (max-width: 399px) {
+  #start-screen h2 {
+    font-size: 3rem;
+    top: 2%;
+  }
+  #start-btn-settings {
+    margin-top: 40px;
+    bottom: 15px;
+  }
+}

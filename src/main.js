@@ -10,25 +10,29 @@ const contentData = [
         id: 1,
         name: "Horse",
         image: "/images/bg1.jpg",
-        sound: "/sounds/horse-neigh.mp3" 
+        sound: "/sounds/horse-neigh.mp3",
+        word:  "/sounds/hello.mp3"
     },
     {
         id: 2,
         name: "Duck",
         image: "/images/bg2.jpg",
-        sound: "/sounds/duck-quack.mp3" 
+        sound: "/sounds/duck-quack.mp3",
+        word:  "/sounds/hello.mp3" 
     },
     {
         id: 3,
         name: "Lion",
         image: "/images/bg3.jpg",
-        sound: "/sounds/dog-bark.mp3"   
+        sound: "/sounds/dog-bark.mp3",
+        word:  "/sounds/hello.mp3" 
     },
     {
         id: 4,
         name: "Zebra",
         image: "/images/bg4.jpg",
-        sound: "/sounds/duck-quack.mp3"     
+        sound: "/sounds/duck-quack.mp3",
+        word:  "/sounds/hello.mp3"     
     }
 ];
 
@@ -39,6 +43,7 @@ let isContentReady = false;
 let isTransitioning = false;
 let isSoundOn = true; // Assume sound starts ON
 let currentWordTapAudio = null;
+let currentSoundMode = 'animal';
 // --- Touch State Variables 
 let touchStartX = 0;
 let touchStartY = 0;
@@ -66,6 +71,8 @@ const animalNameDisplayElement = document.querySelector('#animal-name-display');
 const innerButton = document.querySelector('#inner-button');
 const soundIconContainer = document.querySelector('.icon-container');
 const backButton = document.querySelector('#back-button');
+const animalSoundButton = document.querySelector('#btn-animal-sound');
+const humanSoundButton = document.querySelector('#btn-human-sound');
 
 
 // --- Early Checks ---
@@ -75,9 +82,29 @@ if (!innerButton) console.error("CRITICAL ERROR: #inner-button not found!");
 if (contentData.length === 0) console.error("CRITICAL ERROR: contentData array is empty!");
 if (!soundIconContainer) console.warn("WARN: Sound icon container '.icon-container' not found.");
 if (!backButton) console.warn("WARN: Back button '#back-button' not found.");
+if (!animalSoundButton) console.error("CRITICAL ERROR: #btn-animal-sound not found!");
+if (!humanSoundButton) console.error("CRITICAL ERROR: #btn-human-sound not found!");
 
 // --- Helper Functions ---
 //
+// Updates the visual selection state of the sound mode icons. //
+function updateSoundModeUI() {
+    // Safety check in case elements aren't found
+    if (!animalSoundButton || !humanSoundButton) {
+        console.error("[UI Update] Cannot update sound mode UI - buttons not found.");
+        return;
+    }
+
+    console.log(`[UI Update] Setting sound mode visual state for: ${currentSoundMode}`);
+    if (currentSoundMode === 'human') {
+        humanSoundButton.classList.add('selected');
+        animalSoundButton.classList.remove('selected');
+    } else { // Default to 'animal'
+        animalSoundButton.classList.add('selected');
+        humanSoundButton.classList.remove('selected');
+    }
+}
+
 // Initiates download for all images in the provided data array. //
 function preloadAllImages(dataArray) {
     if (!dataArray || dataArray.length === 0) {
@@ -251,64 +278,89 @@ function showItemAtIndex(newIndex) {
  * Prevents re-triggering while the sound is already playing from a word tap.
  * @param {Event} event - The click event object (optional, not strictly needed now).
  */
-function handleWordTap(event) {
-    // 1. Check if a word tap sound is currently playing and hasn't ended
+
+function handleWordTap(event) { // event parameter may not be used if only called by handlePress
+    // 1. Check if a sound triggered by this function is currently playing
     if (currentWordTapAudio && !currentWordTapAudio.ended) {
-        console.log("[SOUND] Word tap ignored, previous tap sound still playing.");
-        return; // Don't start a new sound if one is already playing from a tap
+        console.log("[SOUND] Word tap/Button press ignored, previous sound still playing.");
+        return; // Don't overlap sounds triggered by this specific interaction
     }
 
-    // 2. Get the sound URL for the CURRENTLY displayed item
-    // Ensure currentIndex is valid and contentData exists (should be okay if app is running)
+    // 2. Get the CURRENT item data and perform checks
     if (currentIndex < 0 || currentIndex >= contentData.length) {
-        console.error("[SOUND] Invalid currentIndex for word tap sound.");
+        console.error("[SOUND] Invalid currentIndex for sound playback.");
         return;
     }
-    const currentSoundUrl = contentData[currentIndex]?.sound; // Use optional chaining
-
-    // 3. Check if there's a sound URL for the current item
-    if (currentSoundUrl) {
-        console.log(`[SOUND] Word tapped. Attempting to play sound for index ${currentIndex}: ${currentSoundUrl}`);
-
-        // 4. Call playSound (which checks global mute state) and get the Audio object
-        const newAudio = playSound(currentSoundUrl);
-
-        // 5. If playSound returned an Audio object (i.e., not muted/error)
-        if (newAudio) {
-            // Store reference to this specific audio instance
-            currentWordTapAudio = newAudio;
-
-            // 6. Add listener for when THIS specific sound finishes
-            newAudio.onended = () => {
-                console.log(`[SOUND] Word tap sound finished: ${currentSoundUrl}`);
-                // Only clear the global reference if it STILL points to this audio object
-                // (Prevents race conditions if user clicks extremely fast)
-                if (currentWordTapAudio === newAudio) {
-                    currentWordTapAudio = null;
-                }
-            };
-
-            // 7. Add listener for errors during playback for THIS instance
-            newAudio.onerror = () => {
-                console.error(`[SOUND] Error during word tap playback: ${currentSoundUrl}`);
-                // Clear the reference if it was this audio object that failed
-                if (currentWordTapAudio === newAudio) {
-                    currentWordTapAudio = null;
-                }
-            };
-        }
-    } else {
-        console.log(`[SOUND] Word tapped, but no sound associated with current item index ${currentIndex}.`);
+    const currentItem = contentData[currentIndex];
+    if (!currentItem) {
+         console.error(`[SOUND] Cannot play sound: Missing item data for index ${currentIndex}.`);
+         return;
     }
+
+    // --- 3. NEW LOGIC: Determine which sound URL to use based on mode ---
+    let soundUrlToPlay;         // Variable to hold the chosen URL
+    let soundTypeDescription;   // Variable for logging purposes
+
+    if (currentSoundMode === 'human') {
+        soundUrlToPlay = currentItem.word; // Get URL from the 'word' key
+        soundTypeDescription = "Spoken Word";
+
+        // Check if the 'word' property exists and is a valid string URL
+        if (!soundUrlToPlay || typeof soundUrlToPlay !== 'string') {
+             console.warn(`[SOUND] Missing or invalid 'word' URL for item '${currentItem.name}' (index ${currentIndex}). Cannot play human sound.`);
+             // Optional: Could fallback to animal sound here, but for now we just stop.
+             return;
+        }
+    } else { // Default is 'animal' mode
+        soundUrlToPlay = currentItem.sound; // Get URL from the 'sound' key
+        soundTypeDescription = "Animal Sound";
+
+        // Check if the 'sound' property exists and is a valid string URL
+        if (!soundUrlToPlay || typeof soundUrlToPlay !== 'string') {
+             console.warn(`[SOUND] Missing or invalid 'sound' URL for item '${currentItem.name}' (index ${currentIndex}). Cannot play animal sound.`);
+             // Stop if the required sound URL is missing/invalid
+             return;
+        }
+    }
+    console.log(`[SOUND] Mode: ${currentSoundMode}. Attempting to play ${soundTypeDescription}: ${soundUrlToPlay}`);
+    // --- END NEW LOGIC ---
+
+    // 4. Call playSound function (this checks the global 'isSoundOn' mute state)
+    // Pass the dynamically determined soundUrlToPlay
+    const newAudio = playSound(soundUrlToPlay);
+
+    // 5. Handle audio events & store reference (existing logic, updated logs)
+    if (newAudio) {
+        // Store reference to prevent overlap from THIS function's triggers
+        currentWordTapAudio = newAudio;
+
+        // Add listener for when THIS specific sound finishes
+        newAudio.onended = () => {
+            // Use the description variable in the log
+            console.log(`[SOUND] Playback finished for ${soundTypeDescription}: ${soundUrlToPlay}`);
+            // Clear the reference ONLY if it's still pointing to this audio object
+            if (currentWordTapAudio === newAudio) {
+                currentWordTapAudio = null;
+            }
+        };
+
+        // Add listener for errors during playback for THIS instance
+        newAudio.onerror = () => {
+            // Use the description variable in the log
+            console.error(`[SOUND] Error during playback for ${soundTypeDescription}: ${soundUrlToPlay}`);
+            // Clear the reference if it was this audio object that failed
+            if (currentWordTapAudio === newAudio) {
+                currentWordTapAudio = null;
+            }
+        };
+    }
+    // If newAudio is null (because sound is globally muted by isSoundOn), nothing further happens here.
 }
 // --- End handleWordTap Function ---
 
  //Initializes the main application view state.//
 function initializeMainApp() {
     console.log("[SETUP] Initializing Main App view...");
-    // isTransitioning = false;
-    // isContentReady = false;
-
     // Set Initial Sound Icon State
     if (soundIconContainer) {
         soundIconContainer.classList.toggle('state-sound-on', isSoundOn);
@@ -316,6 +368,9 @@ function initializeMainApp() {
         console.log(`[SETUP] Initial sound icon state set: ${isSoundOn ? 'ON' : 'OFF'}`);
     }
     
+    // Set initial visual state for the new sound mode icons
+    updateSoundModeUI();
+
     if (contentData.length > 0) {
         showItemAtIndex(currentIndex); // currentIndex should be 0 here       
     } else { console.error("Cannot initialize: contentData is empty."); }
@@ -399,6 +454,39 @@ console.log("[STATE] Initial state set to: state-start");
 
 
 // --- Event Listeners ---
+
+// Sound Mode Toggle Listeners
+if (animalSoundButton) {
+    animalSoundButton.addEventListener('click', () => {
+        // Only update state and UI if the mode is actually changing
+        if (currentSoundMode !== 'animal') {
+            console.log("[MODE TOGGLE] Animal sound selected via click.");
+            currentSoundMode = 'animal'; // Update the state variable
+            updateSoundModeUI();      // Update the button visuals
+        } else {
+             console.log("[MODE TOGGLE] Animal sound already selected.");
+        }
+    });
+    console.log("[SETUP] Animal sound mode button listener attached.");
+} else {
+    console.warn("WARN: Animal sound button not found, listener not attached.");
+}
+
+if (humanSoundButton) {
+    humanSoundButton.addEventListener('click', () => {
+        // Only update state and UI if the mode is actually changing
+        if (currentSoundMode !== 'human') {
+            console.log("[MODE TOGGLE] Human sound selected via click.");
+            currentSoundMode = 'human'; // Update the state variable
+            updateSoundModeUI();     // Update the button visuals
+        } else {
+            console.log("[MODE TOGGLE] Human sound already selected.");
+        }
+    });
+    console.log("[SETUP] Human sound mode button listener attached.");
+} else {
+    console.warn("WARN: Human sound button not found, listener not attached.");
+}
 
 //  Word Area Tap Listener 
 if (animalNameDisplayElement) {
@@ -523,27 +611,79 @@ if (imageSectionElement) {
 
 // --- Main Button interaction logic --- //
 if (innerButton && imageSectionElement && animalNameDisplayElement && contentData.length > 0) {
-
-    // --- handlePress function body ---
+    // --- handlePress function body (REVISED with isTransitioning check) ---
     const handlePress = (event) => {
+        // Log the event type
+        console.log(`[HANDLE PRESS] Function called by event type: ${event.type}`);
+    
         // Keep touchstart prevention
         if (event.type === 'touchstart') {
             event.preventDefault();
         }
-
+    
         // Apply visual depressed effect
         if (innerButton) { // Safety check
             innerButton.classList.add('button-depressed');
         }
-
-        // Trigger the existing word tap logic
-        // (plays current sound, checks mute, handles word tap replay prevention)
+    
+        // Trigger the existing word tap logic FIRST
         console.log("[SOUND] Main button pressed, triggering word tap sound logic.");
         handleWordTap(); // Reuse the function for tapping the word area
+    
+        // --- Check if safe to animate: Only bounce if falling animation is complete ---
+        if (isTransitioning) {
+            // If true, the initial animation is likely still running. Log and do nothing more for bounce.
+            // Corrected log message below:
+            console.log("[HANDLE PRESS] Bounce prevented: Initial word animation still in progress (isTransitioning = true).");
+        } else {
+            // If false, the initial animation is finished. Proceed with bounce logic.
+            console.log("[HANDLE PRESS] Word animation complete (isTransitioning = false). Attempting bounce.");
+    
+            // --- This is the bounce logic block, now inside the 'else' ---
+            const wordDisplayContainer = document.querySelector('#animal-name-display'); // Find the container div
+    
+            if (wordDisplayContainer) {
+                // Find the H1 element *inside* the container
+                const currentWordElement = wordDisplayContainer.querySelector('h1.falling-word');
+    
+                // Check if the H1 element was actually found
+                if (currentWordElement) {
+                    console.log("[HANDLE PRESS] Found h1. Adding '.apply-text-bounce' class.");
+                    // Add the bounce animation class (Moved inside the check)
+                    currentWordElement.classList.add('apply-text-bounce');
+    
+                    // --- PHASE 3 CODE: Listener to remove class after animation ---
+                    console.log("[HANDLE PRESS] Attaching one-time 'animationend' listener to remove bounce class.");
+    
+                    // Define what happens when the animation finishes
+                    const handleBounceEnd = () => {
+                        console.log("[ANIMATION END] Bounce animation finished. Removing '.apply-text-bounce' class.");
+                        // Check if element still exists before removing class (extra safety)
+                        if (currentWordElement) {
+                            currentWordElement.classList.remove('apply-text-bounce');
+                        }
+                        // No need to manually remove the listener because we use { once: true }
+                    };
+    
+                    // Attach the listener.
+                    // { once: true } ensures the listener automatically cleans itself up after firing once.
+                    currentWordElement.addEventListener('animationend', handleBounceEnd, { once: true });
+                    // --- END PHASE 3 CODE ---
+    
+                } else {
+                     // Corrected placement for this error log
+                    console.error("[HANDLE PRESS] Error: Could not find h1.falling-word element inside #animal-name-display to animate.");
+                }
+            } else {
+                console.error("[HANDLE PRESS] Error: Could not find #animal-name-display container.");
+            }
+            // --- End bounce logic block ---
+        }
+        // --- END isTransitioning CHECK ---
+    
+    }; // End handlePress function
 
-    }; // End MODIFIED handlePress
-
-    // --- handleRelease unchanged ---
+    // --- handleRelease  ---
     const handleRelease = (event) => {
         if (innerButton) { // Safety check
             innerButton.classList.remove('button-depressed');
