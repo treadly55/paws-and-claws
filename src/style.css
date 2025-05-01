@@ -294,7 +294,7 @@ body.transitions-ready #inner-button {
   /* Align centers the non-absolute items horizontally */
   align-items: center;
   gap: 20px; /* Space BETWEEN the square buttons */
-  margin-top: 40px;
+  background-image: linear-gradient(rgba(87, 224, 49, 0.5), rgba(45, 13, 207, 0.8)), url('../images/bg-repeat.png');
 }
 
 #start-screen h2 {
@@ -303,6 +303,7 @@ body.transitions-ready #inner-button {
   line-height: 3.5rem;
   color: #2b69dd;
   margin: 0; /* Reset margin */
+  margin-top: 50px;
   text-align: center; /* Center text within its own box */
   /* Absolute Positioning */
   position: absolute;
@@ -310,6 +311,7 @@ body.transitions-ready #inner-button {
   top: 5%; /* Position roughly 1/6th down from the top. Adjust % as needed. */
   left: 50%;
   transform: translate(-50%, -50%); /* Center horizontally and vertically around the 'top' point */
+  text-shadow: 0 0 5px #fff, 0 0 10px #fff, 0 0 15px #fff, 0 0 20px #228DFF;
 }
 
 .start-button {
@@ -355,8 +357,8 @@ body.transitions-ready #inner-button {
 /* --- >>> NEW: Square Button Specific Styles <<< --- */
 .square-button {
   /* Override dimensions */
-  width: 130px;  /* Adjust px value for desired size */
-  height: 130px; /* Should be same as width */
+  width: 140px;  /* Adjust px value for desired size */
+  height: 140px; /* Should be same as width */
   min-width: 0; /* Override min-width from .start-button */
   padding: 10px; /* Adjust padding inside the square */
   aspect-ratio: 1 / 1; /* Strongly enforce square shape */
@@ -372,6 +374,7 @@ body.transitions-ready #inner-button {
   align-items: center;
   justify-content: center;
   margin-bottom: 20px;
+  background-size: cover;
 }
 
 /* === State Visibility Control === */

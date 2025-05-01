@@ -5,7 +5,7 @@
 import './style.css';
 
 // --- 1. Unified Data Array ---
-const contentData = [
+const zooAnimalsData = [
     {
         id: 1,
         name: "Horse",
@@ -35,6 +35,58 @@ const contentData = [
         word:  "/sounds/hello.mp3"     
     }
 ];
+
+const farmAnimalsData = [
+    {
+        id: 1,
+        name: "Cow",
+        image: "/images/cow.png",
+        sound: "/sounds/horse-neigh.mp3",
+        word:  "/sounds/hello.mp3"
+    },
+    {
+        id: 2,
+        name: "Sheep",
+        image: "/images/sheep.png",
+        sound: "/sounds/horse-neigh.mp3",
+        word:  "/sounds/hello.mp3" 
+    },
+    {
+        id: 3,
+        name: "Pig",
+        image: "/images/pig.png",
+        sound: "/sounds/horse-neigh.mp3",
+        word:  "/sounds/hello.mp3" 
+    }
+];
+
+const oceanAnimalsData = [
+    {
+        id: 1,
+        name: "Fish",
+        image: "/images/fish.png",
+        sound: "/sounds/horse-neigh.mp3",
+        word:  "/sounds/hello.mp3"
+    },
+    {
+        id: 2,
+        name: "Shark",
+        image: "/images/shark.png",
+        sound: "/sounds/horse-neigh.mp3",
+        word:  "/sounds/hello.mp3" 
+    },
+    {
+        id: 3,
+        name: "Octopus",
+        image: "/images/octopus.png",
+        sound: "/sounds/horse-neigh.mp3",
+        word:  "/sounds/hello.mp3" 
+    }
+];
+
+// --- NEW: Variable to hold the data array for the currently loaded level ---
+let activeContentData = [];
+// --- END NEW ---
 
 // --- 2. State Variables ---
 let currentIndex = 0;
@@ -73,13 +125,16 @@ const soundIconContainer = document.querySelector('.icon-container');
 const backButton = document.querySelector('#back-button');
 const animalSoundButton = document.querySelector('#btn-animal-sound');
 const humanSoundButton = document.querySelector('#btn-human-sound');
+const startLevel1Button = document.querySelector('#start-level-1');
+const startLevel2Button = document.querySelector('#start-level-2');
+const startLevel3Button = document.querySelector('#start-level-3');
 
 
 // --- Early Checks ---
 if (!imageSectionElement) console.error("CRITICAL ERROR: #image-section not found!");
 if (!animalNameDisplayElement) console.error("CRITICAL ERROR: #animal-name-display not found!");
 if (!innerButton) console.error("CRITICAL ERROR: #inner-button not found!");
-if (contentData.length === 0) console.error("CRITICAL ERROR: contentData array is empty!");
+// if (contentData.length === 0) console.error("CRITICAL ERROR: contentData array is empty!");
 if (!soundIconContainer) console.warn("WARN: Sound icon container '.icon-container' not found.");
 if (!backButton) console.warn("WARN: Back button '#back-button' not found.");
 if (!animalSoundButton) console.error("CRITICAL ERROR: #btn-animal-sound not found!");
@@ -189,7 +244,7 @@ function goToNextItem() {
        return;
     }
     console.log("[NAV] Going to next item...");
-    const nextIndex = (currentIndex + 1) % contentData.length;
+    const nextIndex = (currentIndex + 1) % activeContentData.length;
     showItemAtIndex(nextIndex);
 }
 
@@ -200,7 +255,7 @@ function goToPreviousItem() {
     }
     console.log("[NAV] Going to previous item...");
     // Ensure wrap-around works correctly for negative numbers
-    const prevIndex = (currentIndex - 1 + contentData.length) % contentData.length;
+    const prevIndex = (currentIndex - 1 + activeContentData.length) % activeContentData.length;
     showItemAtIndex(prevIndex);
 }
 
@@ -209,68 +264,95 @@ function goToPreviousItem() {
 // --- >>> NEW: Function to Display Content at a Specific Index <<< ---
 /**
  * Updates the UI to show the item at the given index and manages transitions.
- * @param {number} newIndex - The index of the item in contentData to display.
+ * @param {number} newIndex - The index of the item in activeContentData  to display.
  */
+
 function showItemAtIndex(newIndex) {
-    // Basic index validation (optional but good)
-    if (newIndex < 0 || newIndex >= contentData.length) {
-        console.error(`[DISPLAY] Invalid index requested: ${newIndex}`);
-        isTransitioning = false; // Ensure we aren't stuck if index was bad
+    console.log(`[DISPLAY] Request to show item at index: ${newIndex}`);
+
+    // --- Check if active data is available ---
+    if (!activeContentData || activeContentData.length === 0) {
+        console.error("[DISPLAY] Cannot show item: activeContentData is empty or not set.");
+        // Optional: Display an error message to the user on the screen
+        isTransitioning = false; // Ensure we don't get stuck
         return;
     }
-    console.log(`[DISPLAY] Showing item at index: ${newIndex}`);
+
+    // Basic index validation using active data length
+    if (newIndex < 0 || newIndex >= activeContentData.length) {
+        console.error(`[DISPLAY] Invalid index requested: ${newIndex} for data length ${activeContentData.length}`);
+        // Optional: Maybe wrap around? Or just stop? For now, stop.
+        isTransitioning = false; // Ensure we aren't stuck
+        return;
+    }
+    // --- End Checks ---
+
+    console.log(`[DISPLAY] Showing item for index: ${newIndex}`);
     isTransitioning = true; // Mark app as busy
     isContentReady = false; // Content is about to change
     isWordAnimationComplete = false; // Reset word flag
 
     // Clear previous timers related to word animation/readiness
     clearTimeout(wordReadyTimeoutId);
-    clearTimeout(enableButtonTimeoutId); // Button enable tied to word timer
+    // clearTimeout(enableButtonTimeoutId); // This timer was likely removed earlier
 
     // Update the global index
     currentIndex = newIndex;
-    const newItem = contentData[currentIndex];
+    const newItem = activeContentData[currentIndex]; // Use activeContentData
+
+    // Check if newItem exists (it should, due to checks above, but good practice)
+    if (!newItem) {
+         console.error(`[DISPLAY] Error: No item found at index ${currentIndex} in activeContentData.`);
+         isTransitioning = false;
+         return;
+    }
+
+    console.log(`[DISPLAY] Item Data:`, newItem); // Log the specific item data
 
     // Update Background
     if (imageSectionElement && newItem.image) {
         imageSectionElement.style.backgroundImage = `url(${newItem.image})`;
-        console.log(`Background updated to: ${newItem.image}`);
+        console.log(`[DISPLAY] Background updated to: ${newItem.image}`);
     } else if (!imageSectionElement) {
-        console.error('Cannot update background: #image-section missing.');
+        console.error('[DISPLAY] Cannot update background: #image-section missing.');
+    } else if (!newItem.image) {
+         console.warn(`[DISPLAY] Item at index ${currentIndex} has no image URL.`);
     }
 
     // Update Word Display & Start Animation Timer
     if (animalNameDisplayElement && newItem.name) {
         displayFallingWord(newItem.name, animalNameDisplayElement);
-        console.log(`Word display updated to: ${newItem.name}`);
+        console.log(`[DISPLAY] Word display updated to: ${newItem.name}`);
 
-        // Calculate word animation time
+        // Calculate word animation time (using newItem.name.length)
         const wordLength = newItem.name.length;
-        const baseDelayMs = 1000;
+        const baseDelayMs = 1000; // Ensure these match your CSS/expectations
         const incrementDelayMs = 100;
         const keyframeDurationMs = 1000;
         const totalWordAnimationTimeMs = baseDelayMs + (wordLength > 0 ? (wordLength - 1) * incrementDelayMs : 0) + keyframeDurationMs;
-        console.log(`[DEBUG] Word Anim Time for index ${currentIndex}: ${totalWordAnimationTimeMs}ms`);
-        // Set timeout for word animation completion
-        // NOTE: Button re-enabling is removed as button doesn't trigger this anymore
+
+        console.log(`[DISPLAY DEBUG] Calculated Word Anim Time for index ${currentIndex}: ${totalWordAnimationTimeMs}ms`);
+
         wordReadyTimeoutId = setTimeout(() => {
-            console.log(`[DEBUG] Word animation finished for index ${currentIndex}.`);
+            console.log(`[DISPLAY DEBUG] Word animation finished for index ${currentIndex}.`);
             isWordAnimationComplete = true;
-            // innerButton.disabled = false; // Removed - button enable is separate now
             checkIfReady(); // Checks readiness and sets isTransitioning = false
         }, totalWordAnimationTimeMs);
-        // enableButtonTimeoutId = wordReadyTimeoutId; // Removed
 
     } else if (!animalNameDisplayElement) {
-        console.error('Cannot update word display: #animal-name-display missing.');
-        // If word display fails, we should probably still clear the transitioning flag after a delay
-        isTransitioning = false;
+        console.error('[DISPLAY] Cannot update word display: #animal-name-display missing.');
+        isTransitioning = false; // Clear flag if display fails
     } else {
-        // No name? Still need to clear transitioning state
-        console.warn(`No name found for item at index ${currentIndex}.`);
-        isTransitioning = false; // Or maybe set a short fallback timer? For now, clear directly.
+        // No name? Still need to clear transitioning state eventually.
+        console.warn(`[DISPLAY] No name found for item at index ${currentIndex}.`);
+        // If no name, word animation doesn't run, so set flags immediately or after short delay
+        isWordAnimationComplete = true; // No animation to wait for
+        checkIfReady(); // Clear isTransitioning flag
+        // Alternatively, could skip directly to isTransitioning = false if checkIfReady causes issues
+        // isTransitioning = false;
     }
 }
+
 
 // --- >>> NEW: Handler for Word Area Tap <<< ---
 /**
@@ -287,11 +369,11 @@ function handleWordTap(event) { // event parameter may not be used if only calle
     }
 
     // 2. Get the CURRENT item data and perform checks
-    if (currentIndex < 0 || currentIndex >= contentData.length) {
+    if (currentIndex < 0 || currentIndex >= activeContentData.length) {
         console.error("[SOUND] Invalid currentIndex for sound playback.");
         return;
     }
-    const currentItem = contentData[currentIndex];
+    const currentItem = activeContentData[currentIndex];
     if (!currentItem) {
          console.error(`[SOUND] Cannot play sound: Missing item data for index ${currentIndex}.`);
          return;
@@ -371,10 +453,42 @@ function initializeMainApp() {
     // Set initial visual state for the new sound mode icons
     updateSoundModeUI();
 
-    if (contentData.length > 0) {
-        showItemAtIndex(currentIndex); // currentIndex should be 0 here       
-    } else { console.error("Cannot initialize: contentData is empty."); }
+    if (activeContentData.length > 0) {
+        showItemAtIndex(currentIndex);       
+    } else { console.error("Cannot initialize: activeContentData is empty."); }
 }
+
+/**
+ * Sets the active dataset, preloads images, resets index, and starts the main app view.
+ * @param {Array} dataArray - The array of content objects for the selected level.
+ * @param {string} levelName - A descriptive name for logging (e.g., "Farm Animals").
+ */
+function loadLevelAndStart(dataArray, levelName) {
+    console.log(`[LOAD LEVEL] Request to load level: ${levelName}`);
+
+    // Basic validation of the data array
+    if (!dataArray || !Array.isArray(dataArray) || dataArray.length === 0) {
+        console.error(`[LOAD LEVEL] Error: Data array for ${levelName} is empty or invalid. Cannot load level.`);
+        // Optional: Display an error message to the user on the start screen here
+        alert(`Error: Could not load data for ${levelName}.`); // Simple alert for now
+        return; // Stop execution if data is invalid
+    }
+
+    // --- Core Level Loading Logic ---
+    console.log(`[LOAD LEVEL] Setting active data for <span class="math-inline">\{levelName\} \(</span>{dataArray.length} items).`);
+    activeContentData = dataArray; // Set the global active data
+
+    console.log("[LOAD LEVEL] Resetting currentIndex to 0.");
+    currentIndex = 0; // Reset index for the new dataset
+
+    console.log(`[LOAD LEVEL] Preloading images for ${levelName}...`);
+    preloadAllImages(activeContentData); // Preload images for the selected level
+
+    console.log("[LOAD LEVEL] Transitioning to main app screen...");
+    goToMainApp(); // Transition to the main view
+    // --- End Core Level Loading Logic ---
+}
+
 
 // Transitions the view from start screen to main app
 function goToMainApp() {
@@ -443,8 +557,8 @@ function playSound(soundUrl) {
 
 
 // --- Trigger Image Preloading (Step 2) ---
-if (contentData.length > 0) {
-    preloadAllImages(contentData);
+if (activeContentData .length > 0) {
+    preloadAllImages(activeContentData );
 }
 
 // --- Set Initial Body State Class ---
@@ -454,6 +568,31 @@ console.log("[STATE] Initial state set to: state-start");
 
 
 // --- Event Listeners ---
+
+// --- NEW: Level Start Button Listeners ---
+if (startLevel1Button) {
+    // Call loadLevelAndStart, passing the specific data array and level name
+    startLevel1Button.addEventListener('click', () => loadLevelAndStart(farmAnimalsData, "Farm Animals"));
+    console.log("[SETUP] Level 1 (Farm) button listener attached.");
+} else {
+    console.warn("WARN: Level 1 button not found, listener not attached.");
+}
+
+if (startLevel2Button) {
+    startLevel2Button.addEventListener('click', () => loadLevelAndStart(zooAnimalsData, "Zoo Animals"));
+    console.log("[SETUP] Level 2 (Zoo) button listener attached.");
+} else {
+    console.warn("WARN: Level 2 button not found, listener not attached.");
+}
+
+if (startLevel3Button) {
+    startLevel3Button.addEventListener('click', () => loadLevelAndStart(oceanAnimalsData, "Ocean Animals"));
+    console.log("[SETUP] Level 3 (Ocean) button listener attached.");
+} else {
+    console.warn("WARN: Level 3 button not found, listener not attached.");
+}
+// --- END NEW Level Listeners ---
+
 
 // Sound Mode Toggle Listeners
 if (animalSoundButton) {
@@ -494,15 +633,18 @@ if (animalNameDisplayElement) {
     console.log("[SETUP] Word tap listener attached to #animal-name-display.");
 } 
 // Start Button Listener
-const startButtons = document.querySelectorAll('.start-button');
-if (startButtons.length > 0) {
-    console.log(`[SETUP] Found ${startButtons.length} start button(s). Attaching listeners...`);
-    startButtons.forEach(button => {
-        button.addEventListener('click', goToMainApp);
-    });
-} else {
-    console.warn("No start buttons found with class '.start-button'.");
-}
+
+// const startButtons = document.querySelectorAll('.start-button');
+// if (startButtons.length > 0) {
+//     console.log(`[SETUP] Found ${startButtons.length} start button(s). Attaching listeners...`);
+//     startButtons.forEach(button => {
+//         button.addEventListener('click', goToMainApp);
+//     });
+// } else {
+//     console.warn("No start buttons found with class '.start-button'.");
+// }
+
+
 // Back Button Listener
 if (backButton) {
     backButton.addEventListener('click', goToStartScreen);
@@ -610,7 +752,7 @@ if (imageSectionElement) {
 } 
 
 // --- Main Button interaction logic --- //
-if (innerButton && imageSectionElement && animalNameDisplayElement && contentData.length > 0) {
+if (innerButton && imageSectionElement && animalNameDisplayElement) {
     // --- handlePress function body (REVISED with isTransitioning check) ---
     const handlePress = (event) => {
         // Log the event type
@@ -704,7 +846,7 @@ if (innerButton && imageSectionElement && animalNameDisplayElement && contentDat
     if (!innerButton) console.error("- #inner-button missing.");
     if (!imageSectionElement) console.error("- #image-section missing.");
     if (!animalNameDisplayElement) console.error("- #animal-name-display missing.");
-    if (contentData.length === 0) console.error("- contentData array is empty.");
+    if (activeContentData .length === 0) console.error("- activeContentData  array is empty.");
     if (innerButton) innerButton.disabled = true;
 }
 // --- End Button Interaction ---
