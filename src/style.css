@@ -154,6 +154,10 @@ body {
 .icon-container.state-sound-off #icon-sound-off { display: block; }
 
 
+.icon-container.sound-icon-muted {
+  opacity: 0.5; 
+}
+
 /* === Content Positioning Adjustments === */
 #animal-name-display {
   position: absolute;
@@ -206,28 +210,49 @@ body {
   100% { transform: translateY(0); }
 }
 
-/* === State Visibility Control === */
+/* === State Visibility Control (REVISED FOR 3 STATES) === */
 
-/* Default State: When body has class "state-start" */
-body.state-start #image-section,
-body.state-start #button-section {
-  display: none;
-}
+/* Default state (usually before JS adds any class): Often matches 'start' */
+
+/* State: Start Screen Active */
 body.state-start #start-screen {
-  display: flex;
+  display: flex; /* Show start screen */
+}
+body.state-start #title-bar,
+body.state-start #image-section,
+body.state-start #button-section,
+body.state-start #options-screen {
+  display: none; /* Hide everything else */
 }
 
-/* Main App State: When body has class "state-main" */
-body.state-main #start-screen {
-  display: none;
+/* State: Main Game Screen Active */
+body.state-main #title-bar {
+  display: grid; /* Show title bar */
 }
 body.state-main #image-section {
-  display: block; /* Or initial display type */
+  display: block; /* Show image section */
 }
-/* CORRECTED display property for main state */
 body.state-main #button-section {
-  display: grid; /* Use grid to match its base style */
+  display: grid; /* Show button section */
 }
+body.state-main #start-screen,
+body.state-main #options-screen {
+  display: none; /* Hide start and options screens */
+}
+
+/* State: Options Screen Active (NEW) */
+body.state-options #title-bar {
+  display: grid; /* Show title bar */
+}
+body.state-options #options-screen {
+  display: flex; /* Show options screen */
+}
+body.state-options #start-screen,
+body.state-options #image-section,
+body.state-options #button-section {
+  display: none; /* Hide start and main game sections */
+}
+
 /* === End State Visibility Control === */
 
 
@@ -514,6 +539,69 @@ body.state-main #button-section {
   max-width: 100%;
   height: auto; /* Maintain aspect ratio if needed, but HTML width/height should dominate */
 }
+
+/* === Options Screen Styling === */
+
+#options-screen {
+  box-sizing: border-box;
+  padding: 30px;
+  padding-top: 75px; /* Account for 55px title bar + extra space */
+  color: #212121; /* Dark grey/black text (or use #1A237E for dark blue) */
+  display: flex; /* Use flexbox for content arrangement */
+  flex-direction: column; /* Stack content vertically */
+  align-items: flex-start; /* Align items to the left by default */
+  gap: 25px; /* Vertical space between direct children (h2, option-item, p) */
+  display: none; /* Will be overridden by state class later */
+}
+
+/* Style heading within options screen */
+#options-screen h2 {
+  font-size: 2.5rem; /* Large, clear heading */
+  font-family: 'Baloo 2', cursive; /* Optional: Match other titles */
+  color: #1A237E; /* Example: Dark blue heading */
+  margin: 0; /* Remove default margin */
+  width: 100%; /* Allow centering */
+  text-align: center; /* Center the heading */
+  margin-bottom: 65px; /* Add space below heading only */
+}
+
+/* Style the container for checkbox + label */
+.option-item {
+  display: flex;
+  align-items: center; /* Vertically align checkbox and label */
+  gap: 10px; /* Space between checkbox and label */
+  width: 100%; /* Optional: make container full width */
+  padding-left: 10px; /* Indent options slightly */
+}
+
+/* Style the label text */
+#options-screen label {
+  font-size: 1.2rem; /* Clear, large label */
+  font-family: 'Open Sans', sans-serif; /* Readable font */
+  /* Inherits main text color unless specified */
+}
+
+/* Style the checkbox appearance */
+#options-screen input[type="checkbox"] {
+  width: 20px; /* Make checkbox larger */
+  height: 20px;
+  cursor: pointer;
+  accent-color: #2d4ade; /* Optional: Color the checkmark */
+}
+
+/* Style the paragraph text */
+#options-screen p {
+  font-size: 1rem; /* Clear paragraph text */
+  font-family: 'Open Sans', sans-serif;
+  line-height: 1.5; /* Improve readability */
+  margin-top: 200px; /* Remove default margin */
+  width: 100%; /* Optional: make container full width */
+  padding-left: 10px; /* Indent paragraph slightly */
+   /* Inherits main text color unless specified */
+}
+/* === End Options Screen Styling === */
+
+
 
 @media only screen and (max-width: 399px) {
   #start-screen h2 {

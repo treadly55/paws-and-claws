@@ -5,37 +5,6 @@
 import './style.css';
 
 // --- 1. Unified Data Array ---
-const zooAnimalsData = [
-    {
-        id: 1,
-        name: "Horse",
-        image: "/images/bg1.jpg",
-        sound: "/sounds/horse-neigh.mp3",
-        word:  "/sounds/hello.mp3"
-    },
-    {
-        id: 2,
-        name: "Duck",
-        image: "/images/bg2.jpg",
-        sound: "/sounds/duck-quack.mp3",
-        word:  "/sounds/hello.mp3" 
-    },
-    {
-        id: 3,
-        name: "Lion",
-        image: "/images/bg3.jpg",
-        sound: "/sounds/dog-bark.mp3",
-        word:  "/sounds/hello.mp3" 
-    },
-    {
-        id: 4,
-        name: "Zebra",
-        image: "/images/bg4.jpg",
-        sound: "/sounds/duck-quack.mp3",
-        word:  "/sounds/hello.mp3"     
-    }
-];
-
 const farmAnimalsData = [
     {
         id: 1,
@@ -46,15 +15,81 @@ const farmAnimalsData = [
     },
     {
         id: 2,
-        name: "Sheep",
-        image: "/images/sheep.png",
+        name: "Duck",
+        image: "/images/duck.png",
+        sound: "/sounds/duck-quack.mp3",
+        word:  "/sounds/hello.mp3" 
+    },
+    {
+        id: 3,
+        name: "Goat",
+        image: "/images/goat.png",
+        sound: "/sounds/dog-bark.mp3",
+        word:  "/sounds/hello.mp3" 
+    },
+    {
+        id: 4,
+        name: "Pig",
+        image: "/images/pig.png",
+        sound: "/sounds/duck-quack.mp3",
+        word:  "/sounds/hello.mp3"     
+    },
+    {
+        id: 5,
+        name: "Horse",
+        image: "/images/horse.png",
+        sound: "/sounds/horse-neigh.mp3",
+        word:  "/sounds/hello.mp3"
+    },
+    {
+        id: 6,
+        name: "Chicken",
+        image: "/images/chicken.png",
+        sound: "/sounds/horse-neigh.mp3",
+        word:  "/sounds/hello.mp3"
+    }
+];
+
+const zooAnimalsData = [
+    {
+        id: 1,
+        name: "Lion",
+        image: "/images/lion.png",
+        sound: "/sounds/horse-neigh.mp3",
+        word:  "/sounds/hello.mp3"
+    },
+    {
+        id: 2,
+        name: "Tiger",
+        image: "/images/tiger.png",
         sound: "/sounds/horse-neigh.mp3",
         word:  "/sounds/hello.mp3" 
     },
     {
         id: 3,
-        name: "Pig",
-        image: "/images/pig.png",
+        name: "Zebra",
+        image: "/images/zebra.png",
+        sound: "/sounds/horse-neigh.mp3",
+        word:  "/sounds/hello.mp3" 
+    },
+    {
+        id: 4,
+        name: "Giraffe",
+        image: "/images/giraffe.png",
+        sound: "/sounds/horse-neigh.mp3",
+        word:  "/sounds/hello.mp3" 
+    },
+    {
+        id: 5,
+        name: "Elephant",
+        image: "/images/elephant.png",
+        sound: "/sounds/horse-neigh.mp3",
+        word:  "/sounds/hello.mp3" 
+    },
+    {
+        id: 6,
+        name: "Monkey",
+        image: "/images/monkey.png",
         sound: "/sounds/horse-neigh.mp3",
         word:  "/sounds/hello.mp3" 
     }
@@ -81,6 +116,27 @@ const oceanAnimalsData = [
         image: "/images/octopus.png",
         sound: "/sounds/horse-neigh.mp3",
         word:  "/sounds/hello.mp3" 
+    },
+    {
+        id: 4,
+        name: "Penguin",
+        image: "/images/penguin.png",
+        sound: "/sounds/horse-neigh.mp3",
+        word:  "/sounds/hello.mp3" 
+    },
+    {
+        id: 5,
+        name: "Dolphin",
+        image: "/images/dolphin.png",
+        sound: "/sounds/horse-neigh.mp3",
+        word:  "/sounds/hello.mp3" 
+    },
+    {
+        id: 6,
+        name: "Starfish",
+        image: "/images/starfish.png",
+        sound: "/sounds/horse-neigh.mp3",
+        word:  "/sounds/hello.mp3" 
     }
 ];
 
@@ -93,14 +149,13 @@ let currentIndex = 0;
 let isWordAnimationComplete = false;
 let isContentReady = false;
 let isTransitioning = false;
-let isSoundOn = true; // Assume sound starts ON
+let isSoundOn = true; 
+let isForceMutedByOption = false;
 let currentWordTapAudio = null;
 let currentSoundMode = 'animal';
-// --- Touch State Variables 
 let touchStartX = 0;
 let touchStartY = 0;
 let touchStartTime = 0;
-// --- Swipe Detection Constants 
 const MIN_SWIPE_DISTANCE = 50; // Minimum pixels horizontally for a swipe
 const MAX_VERTICAL_DISTANCE = 75; // Maximum pixels vertically allowed during horizontal swipe
 const MAX_SWIPE_TIME = 500; // Maximum time in ms for a swipe gesture
@@ -128,6 +183,8 @@ const humanSoundButton = document.querySelector('#btn-human-sound');
 const startLevel1Button = document.querySelector('#start-level-1');
 const startLevel2Button = document.querySelector('#start-level-2');
 const startLevel3Button = document.querySelector('#start-level-3');
+const optionsButton = document.querySelector('#start-btn-settings');
+const optionCheckbox1 = document.querySelector('#option-checkbox-1'); 
 
 
 // --- Early Checks ---
@@ -222,6 +279,20 @@ function checkIfReady() {
         isWordAnimationComplete = false; // Reset word flag for next cycle
     }
 }
+
+//  Transitions the application view to the Options screen state.
+function goToOptionsScreen() {
+    console.log("[STATE] Request to transition to Options Screen state...");
+    document.body.classList.remove('state-start', 'state-main');
+    document.body.classList.add('state-options');
+    console.log("[STATE] Body class set to: state-options");
+
+    if (optionCheckbox1) {
+        optionCheckbox1.checked = isForceMutedByOption;
+        console.log(`[OPTIONS UI] Synced checkbox visual state to match isForceMutedByOption: ${isForceMutedByOption}`);
+    }
+}
+
 // Go Back to Start Screen 
 function goToStartScreen() {
     console.log("[STATE] Transitioning back to Start Screen state...");
@@ -443,15 +514,11 @@ function handleWordTap(event) { // event parameter may not be used if only calle
  //Initializes the main application view state.//
 function initializeMainApp() {
     console.log("[SETUP] Initializing Main App view...");
-    // Set Initial Sound Icon State
-    if (soundIconContainer) {
-        soundIconContainer.classList.toggle('state-sound-on', isSoundOn);
-        soundIconContainer.classList.toggle('state-sound-off', !isSoundOn);
-        console.log(`[SETUP] Initial sound icon state set: ${isSoundOn ? 'ON' : 'OFF'}`);
-    }
-    
+    // Set Initial Sound Icon State   
     // Set initial visual state for the new sound mode icons
     updateSoundModeUI();
+    updateMainSoundIconVisualState();
+   // --- End initial sync ---
 
     if (activeContentData.length > 0) {
         showItemAtIndex(currentIndex);       
@@ -492,12 +559,16 @@ function loadLevelAndStart(dataArray, levelName) {
 
 // Transitions the view from start screen to main app
 function goToMainApp() {
-    console.log("[STATE] Transitioning to Main App state...");
-    document.body.classList.remove('state-start');
+    console.log("[STATE] Request to transition to Main App state...");
+    // Remove other potential state classes
+    document.body.classList.remove('state-start', 'state-options'); // Added 'state-options'
+    // Add the main state class
     document.body.classList.add('state-main');
     console.log("[STATE] Body class set to: state-main");
+    // Initialize the main app view (this call should already exist)
     initializeMainApp();
 }
+
 // --- >>> Sound Toggle Function <<< ---
 function toggleSoundState() {
     if (!soundIconContainer) return; // Safety check
@@ -506,8 +577,7 @@ function toggleSoundState() {
     console.log(`[SOUND] Sound state toggled. isSoundOn: ${isSoundOn}`);
 
     // Update classes efficiently
-    soundIconContainer.classList.toggle('state-sound-on', isSoundOn);
-    soundIconContainer.classList.toggle('state-sound-off', !isSoundOn);
+    updateMainSoundIconVisualState();
 }
 // --- End Sound Toggle Function ---
 
@@ -519,6 +589,13 @@ function toggleSoundState() {
 
 // --- >>> Function to Play Sound <<< ---
 function playSound(soundUrl) {
+        // --- Check override option FIRST ---
+        if (isForceMutedByOption) {
+            console.log(`[SOUND] Playback skipped (Force Muted by Option): ${soundUrl}`);
+            return null; // Don't play if force-muted
+        }
+        // --- END Check override ---
+
     // 1. Check the global mute state FIRST
     if (!isSoundOn) {
         console.log(`[SOUND] Playback skipped (Muted): ${soundUrl}`);
@@ -556,7 +633,7 @@ function playSound(soundUrl) {
 
 
 
-// --- Trigger Image Preloading (Step 2) ---
+// --- Trigger Image Preloading ---
 if (activeContentData .length > 0) {
     preloadAllImages(activeContentData );
 }
@@ -567,8 +644,25 @@ document.body.classList.add('state-start');
 console.log("[STATE] Initial state set to: state-start");
 
 
+
+
 // --- Event Listeners ---
 
+// Back Button Listener
+if (backButton) {
+    backButton.addEventListener('click', goToStartScreen);
+    console.log("[SETUP] Back button listener attached.");
+} 
+// Sound Icon Listener 
+if (soundIconContainer) {
+    soundIconContainer.addEventListener('click', toggleSoundState);
+    console.log("[SETUP] Sound toggle listener attached.");
+} 
+
+if (optionsButton) {
+    optionsButton.addEventListener('click', goToOptionsScreen);
+    console.log("[SETUP] Options button listener attached.");
+}
 
 if (startLevel1Button) {
     // Call loadLevelAndStart, passing the specific data array and level name
@@ -590,6 +684,61 @@ if (startLevel3Button) {
     console.log("[SETUP] Level 3 (Ocean) button listener attached.");
 } else {
     console.warn("WARN: Level 3 button not found, listener not attached.");
+}
+
+
+if (optionCheckbox1) {
+    optionCheckbox1.addEventListener('change', (event) => {
+        // Get the new checked state (true or false) from the event
+        const isChecked = event.target.checked;
+        console.log(`[OPTIONS] Checkbox changed. New checked state: ${isChecked}`);
+
+        // Update the global state variable based on the checkbox
+        isForceMutedByOption = isChecked;
+        console.log(`[STATE] isForceMutedByOption set to: ${isForceMutedByOption}`);
+
+        // --- Action for next step: Update main sound icon visuals ---
+        // We will define updateMainSoundIconVisualState in the next phase,
+        // but we need to call it here so the icon updates immediately when
+        // the checkbox state changes.
+        console.log("[OPTIONS] Calling updateMainSoundIconVisualState() after checkbox change.");
+        updateMainSoundIconVisualState();
+        // --- End action for next step ---
+
+    });
+    console.log("[SETUP] Options checkbox 'change' listener attached.");
+}
+
+function updateMainSoundIconVisualState() {
+    if (!soundIconContainer) {
+        console.warn("[UI Sync] Cannot update main sound icon: container not found.");
+        return;
+    }
+
+    // --- Determine Effective Mute State (for Opacity) ---
+    const effectivelyMuted = isForceMutedByOption || !isSoundOn;
+    console.log(`[UI Sync] Updating main sound icon. ForceMute=${isForceMutedByOption}, SoundOn=${isSoundOn}, EffectivelyMuted=${effectivelyMuted}`);
+
+    // --- 1. Handle Opacity based on Effective Mute State, force 0 if isForceMutedByOption is true ---
+    if (isForceMutedByOption) {
+        soundIconContainer.style.opacity = '0'; // force opacity to 0 when force muted
+    } else if (effectivelyMuted) {
+        soundIconContainer.style.opacity = '0.1'; // use 0.1 for muted by toggle
+    } else {
+        soundIconContainer.style.opacity = '1'; // restore full opacity
+    }
+
+    // --- 2. Handle SVG Visibility based on *underlying* isSoundOn State ---
+    // Remove previous state first for clean toggle
+    soundIconContainer.classList.remove('state-sound-on', 'state-sound-off');
+
+    if (isSoundOn) {
+        soundIconContainer.classList.add('state-sound-on');
+        console.log("[UI Sync] Setting icon state class to: state-sound-on");
+    } else {
+        soundIconContainer.classList.add('state-sound-off');
+        console.log("[UI Sync] Setting icon state class to: state-sound-off");
+    }
 }
 
 
@@ -615,7 +764,6 @@ if (animalSoundButton) {
 } else {
     console.warn("WARN: Animal sound button not found, listener not attached.");
 }
-
 
 if (humanSoundButton) {
     humanSoundButton.addEventListener('click', () => {
@@ -644,32 +792,7 @@ if (animalNameDisplayElement) {
     animalNameDisplayElement.addEventListener('click', handleWordTap);
     console.log("[SETUP] Word tap listener attached to #animal-name-display.");
 } 
-// Start Button Listener
-
-// const startButtons = document.querySelectorAll('.start-button');
-// if (startButtons.length > 0) {
-//     console.log(`[SETUP] Found ${startButtons.length} start button(s). Attaching listeners...`);
-//     startButtons.forEach(button => {
-//         button.addEventListener('click', goToMainApp);
-//     });
-// } else {
-//     console.warn("No start buttons found with class '.start-button'.");
-// }
-
-
-// Back Button Listener
-if (backButton) {
-    backButton.addEventListener('click', goToStartScreen);
-    console.log("[SETUP] Back button listener attached.");
-} 
-// Sound Icon Listener 
-if (soundIconContainer) {
-    soundIconContainer.addEventListener('click', toggleSoundState);
-    console.log("[SETUP] Sound toggle listener attached.");
-} 
-
-
-// --- >>> NEW: Swipe Navigation Listeners on Image Section <<< ---
+// --- >>> Swipe Navigation Listeners on Image Section <<< ---
 if (imageSectionElement) {
     // --- Touch Start ---
     imageSectionElement.addEventListener('touchstart', (event) => {
@@ -759,8 +882,7 @@ if (imageSectionElement) {
         touchStartTime = 0;
     }, { passive: true });
 
-    console.log("[SETUP] Swipe listeners attached to #image-section.");
-
+    console.log("[SETUP] Swipe listeners attached to #image-section.")
 } 
 
 // --- Main Button interaction logic --- //
