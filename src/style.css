@@ -23,15 +23,13 @@ body {
 
 /* === Title Bar Styling (Using Grid) === */
 #title-bar {
-  height: 55px; /* Fixed height */
+  height: 32px; /* Fixed height */
   flex-shrink: 0; /* Prevent shrinking if #app flex settings change */
   color: #1b1b1b; /* Text color */
   background-color: #ffffff; /* Background color */
   box-shadow: 0 2px 4px rgba(0,0,0,0.1);
   z-index: 150;
   padding: 0; /* Remove padding, manage spacing via grid/children */
-
-  /* --- Grid Layout --- */
   display: grid;
   grid-template-columns: 1fr 4fr 1fr; /* Columns: 1/6, 4/6, 1/6 */
   align-items: stretch; /* Make children fill height by default */
@@ -87,6 +85,23 @@ body {
   background-position: center center;
   background-repeat: no-repeat;
 }
+
+#image-section::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(
+    to bottom, 
+    rgba(0, 0, 0, 0.1) 0%, 
+    rgba(0, 0, 0, 0.1) 75%, 
+    rgba(0, 0, 0, 0.8) 100%
+  );
+  /* Adjust the gradient colors and opacity as needed */
+}
+
 
 /* Note: This rule might push your falling text down significantly */
 #image-section h1 {
@@ -154,7 +169,7 @@ body {
   font-family: 'Baloo 2', 'Comic Neue', 'Arial', sans-serif;
   display: flex;
   justify-content: center;
-  color: white;
+  color: rgb(255, 255, 255);
   font-weight: bold;
   text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.7);
   margin: 0;
@@ -284,7 +299,7 @@ body.transitions-ready #inner-button {
   inset: 0;
   box-sizing: border-box;
   z-index: 200;
-  background-color: #FAFAFA;
+  background-color: #0b5f2b;
   padding: 30px; /* Padding for inner content if needed */
   /* Flexbox for Centering the MAIN BUTTON GROUP (squares) */
   display: flex;
@@ -293,25 +308,43 @@ body.transitions-ready #inner-button {
   justify-content: center;
   /* Align centers the non-absolute items horizontally */
   align-items: center;
-  gap: 20px; /* Space BETWEEN the square buttons */
-  background-image: linear-gradient(rgba(87, 224, 49, 0.5), rgba(45, 13, 207, 0.8)), url('../images/bg-repeat.png');
+  gap: 50px; /* Space BETWEEN the square buttons */
+  background-image: linear-gradient(
+  to bottom,
+  rgba(255, 240, 100, 1),
+  rgba(18, 69, 171, 0.95),
+  rgba(18, 69, 171, 0.95),
+  rgb(255, 240, 100, 1)
+), url('../images/bg-repeat-1.png');
+}
+
+
+#subtitle {
+  font-size: 1.1rem;
+  line-height: 0.2rem;
+  font-weight: 300;
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
 }
 
 #start-screen h2 {
   font-family: 'Baloo 2', cursive;
   font-size: 4.8rem;
   line-height: 3.5rem;
-  color: #2b69dd;
+  color: #ffffff;
   margin: 0; /* Reset margin */
-  margin-top: 50px;
+  margin-top: 35px;
   text-align: center; /* Center text within its own box */
   /* Absolute Positioning */
   position: absolute;
   width: 90%; /* Prevent text from hitting edges */
-  top: 5%; /* Position roughly 1/6th down from the top. Adjust % as needed. */
+  top: 4%; /* Position roughly 1/6th down from the top. Adjust % as needed. */
   left: 50%;
   transform: translate(-50%, -50%); /* Center horizontally and vertically around the 'top' point */
-  text-shadow: 0 0 5px #fff, 0 0 10px #fff, 0 0 15px #fff, 0 0 20px #228DFF;
+  text-shadow: 1px 1px 18px #190202;
+  padding-top: 5px;
 }
 
 .start-button {
@@ -357,10 +390,9 @@ body.transitions-ready #inner-button {
 /* --- >>> NEW: Square Button Specific Styles <<< --- */
 .square-button {
   /* Override dimensions */
-  width: 140px;  /* Adjust px value for desired size */
-  height: 140px; /* Should be same as width */
+  width: 120px;  /* Adjust px value for desired size */
+  height: 120px; /* Should be same as width */
   min-width: 0; /* Override min-width from .start-button */
-  padding: 10px; /* Adjust padding inside the square */
   aspect-ratio: 1 / 1; /* Strongly enforce square shape */
   /* Appearance */
   border-radius: 20px; /* More rounded corners for square look */
@@ -373,8 +405,9 @@ body.transitions-ready #inner-button {
   display: flex;
   align-items: center;
   justify-content: center;
-  margin-bottom: 20px;
   background-size: cover;
+  border: none;
+  box-shadow: 1px 1px 28px #000000;
 }
 
 /* === State Visibility Control === */

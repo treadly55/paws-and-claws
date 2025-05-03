@@ -569,7 +569,7 @@ console.log("[STATE] Initial state set to: state-start");
 
 // --- Event Listeners ---
 
-// --- NEW: Level Start Button Listeners ---
+
 if (startLevel1Button) {
     // Call loadLevelAndStart, passing the specific data array and level name
     startLevel1Button.addEventListener('click', () => loadLevelAndStart(farmAnimalsData, "Farm Animals"));
@@ -591,19 +591,24 @@ if (startLevel3Button) {
 } else {
     console.warn("WARN: Level 3 button not found, listener not attached.");
 }
-// --- END NEW Level Listeners ---
 
 
 // Sound Mode Toggle Listeners
 if (animalSoundButton) {
     animalSoundButton.addEventListener('click', () => {
+        // --- Play sound immediately on any click ---
+        console.log("[SOUND] Playing UI sound for animal icon click.");
+        // Replace with your actual sound file path
+        playSound('/sounds/toggle.mp3');
+        // --- End sound playback ---
+
         // Only update state and UI if the mode is actually changing
         if (currentSoundMode !== 'animal') {
-            console.log("[MODE TOGGLE] Animal sound selected via click.");
+            console.log("[MODE TOGGLE] Animal sound selected via click (mode changing).");
             currentSoundMode = 'animal'; // Update the state variable
             updateSoundModeUI();      // Update the button visuals
         } else {
-             console.log("[MODE TOGGLE] Animal sound already selected.");
+             console.log("[MODE TOGGLE] Animal sound already selected (mode not changing).");
         }
     });
     console.log("[SETUP] Animal sound mode button listener attached.");
@@ -611,15 +616,22 @@ if (animalSoundButton) {
     console.warn("WARN: Animal sound button not found, listener not attached.");
 }
 
+
 if (humanSoundButton) {
     humanSoundButton.addEventListener('click', () => {
+        // --- Play sound immediately on any click ---
+        console.log("[SOUND] Playing UI sound for human icon click.");
+         // Replace with your actual sound file path
+        playSound('/sounds/toggle.mp3');
+        // --- End sound playback ---
+
         // Only update state and UI if the mode is actually changing
         if (currentSoundMode !== 'human') {
-            console.log("[MODE TOGGLE] Human sound selected via click.");
+            console.log("[MODE TOGGLE] Human sound selected via click (mode changing).");
             currentSoundMode = 'human'; // Update the state variable
             updateSoundModeUI();     // Update the button visuals
         } else {
-            console.log("[MODE TOGGLE] Human sound already selected.");
+            console.log("[MODE TOGGLE] Human sound already selected (mode not changing).");
         }
     });
     console.log("[SETUP] Human sound mode button listener attached.");
