@@ -22,8 +22,8 @@ const farmAnimalsData = [
     },
     {
         id: 3,
-        name: "Goat",
-        image: "/images/goat.png",
+        name: "Sheep",
+        image: "/images/sheep.png",
         sound: "/sounds/dog-bark.mp3",
         word:  "/sounds/hello.mp3" 
     },
