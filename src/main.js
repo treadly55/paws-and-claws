@@ -8,8 +8,8 @@ import './style.css';
 const farmAnimalsData = [
     {
         id: 1,
-        name: "Cow",
-        image: "/images/cow.png",
+        name: "Horse",
+        image: "/images/horse.png",
         sound: "/sounds/horse-neigh.mp3",
         word:  "/sounds/hello.mp3"
     },
@@ -36,8 +36,8 @@ const farmAnimalsData = [
     },
     {
         id: 5,
-        name: "Horse",
-        image: "/images/horse.png",
+        name: "Cow",
+        image: "/images/cow.png",
         sound: "/sounds/horse-neigh.mp3",
         word:  "/sounds/hello.mp3"
     },
