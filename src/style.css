@@ -324,7 +324,7 @@ body.transitions-ready #inner-button {
   inset: 0;
   box-sizing: border-box;
   z-index: 200;
-  background-color: #0b5f2b;
+  background-color: #306344;
   padding: 30px; /* Padding for inner content if needed */
   /* Flexbox for Centering the MAIN BUTTON GROUP (squares) */
   display: flex;
@@ -334,13 +334,14 @@ body.transitions-ready #inner-button {
   /* Align centers the non-absolute items horizontally */
   align-items: center;
   gap: 50px; /* Space BETWEEN the square buttons */
-  background-image: linear-gradient(
+  
+  /* background-image: linear-gradient(
   to bottom,
-  rgba(255, 240, 100, 1),
-  rgba(18, 69, 171, 0.95),
-  rgba(18, 69, 171, 0.95),
-  rgb(255, 240, 100, 1)
-), url('../images/bg-repeat-1.png');
+  rgba(255, 240, 100, 0.5),
+  rgba(0, 0, 0, 0.5),
+  rgba(5, 5, 5, 0.5),
+  rgb(255, 240, 100, 0.5)
+), url('../images/bg-repeat-1.png'); */
 }
 
 
